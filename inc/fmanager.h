@@ -60,4 +60,7 @@ int grab_files(enum win_t active);
 int show_files(enum win_t active);
 int display_content(enum win_t active);
 
+int dim_cursor(void);
+int set_default_attr(void);
+
 #endif

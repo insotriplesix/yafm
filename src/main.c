@@ -16,12 +16,12 @@ main(/*int argc, char *argv[]*/)
 	if (LINES < 6 || COLS < 98) {
 		endwin();
 		fprintf(stderr, "Terminal window is too small.\n"
-			"Min: 11x98, your: %dx%d\n", LINES, COLS);
+			"Min: 6x98, your: %dx%d\n", LINES, COLS);
 		exit(EXIT_FAILURE);
 	}
 
 	int defpos_y = 1, defpos_x = 1;
-	int curpos_y = defpos_y, curpos_x = defpos_x;
+//	int *curpos_y, *curpos_x;
 
 	int is_exit = FALSE;
 
@@ -31,29 +31,46 @@ main(/*int argc, char *argv[]*/)
 		exit(EXIT_FAILURE);
 	}
 
+	mvwchgat(win[ACTIVE_W], defpos_y, defpos_x, COLS / 2 - 2, A_NORMAL, 9, NULL);
+
 	while (!is_exit) {
-		wmove(win[ACTIVE_W], curpos_y, curpos_x);
-		ch = wgetch(win[1]);
+		ch = wgetch(win[ACTIVE_W]);
 
 		switch (ch) {
 			// Movements
 			case KEY_LEFT:
-				move_left();
+				if (ACTIVE_W == RITE_W) {
+					dim_cursor();
+					ACTIVE_W = LEFT_W;
+				}
 				break;
 			case KEY_RIGHT:
-				move_right();
+				if (ACTIVE_W == LEFT_W) {
+					dim_cursor();
+					ACTIVE_W = RITE_W;
+				}
 				break;
 			case KEY_UP:
-				move_up(0);
+				if (content[ACTIVE_W].y_pos - 1 > 0) {
+					set_default_attr();
+					content[ACTIVE_W].y_pos--;
+				}
 				break;
 			case KEY_DOWN:
-				move_down(LINES - 4);
+				if (content[ACTIVE_W].y_pos + 1 < content[ACTIVE_W].count + 1) {
+					set_default_attr();
+					content[ACTIVE_W].y_pos++;
+				}
 				break;
 			case KEY_HOME:
-				curpos_x = defpos_x;
+				set_default_attr();
+				content[ACTIVE_W].y_pos = defpos_y;
+				wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
 				break;
 			case KEY_END:
-				curpos_x = COLS - 2;
+				set_default_attr();
+				content[ACTIVE_W].y_pos = content[ACTIVE_W].count;
+				wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
 				break;
 			// Open file
 			case KEY_F(4):
@@ -80,15 +97,7 @@ main(/*int argc, char *argv[]*/)
 			case CTRL_X:
 				is_exit = TRUE;
 				break;
-/*			case CTRL_W:
-				rc = hex_editor(win, height, width);
-
-				if (rc == ERR) {
-					fprintf(stderr, "Error in hex_editor() func.\n");
-					is_exit = TRUE;
-				}
-				break;
-*/			// Change theme
+			// Change theme
 			case CTRL_G:
 				rc = change_theme();
 				if (rc == ERR) is_exit = TRUE;
@@ -96,47 +105,16 @@ main(/*int argc, char *argv[]*/)
 			// Print character
 			default:
 				break;
-/*				if (iscntrl(ch))
-					break;
+		}
 
-				if (encryption == TRUE)
-					ch ^= 1;
+		// Update manager windows
+		for (int i = 0; i < NWINDOWS; ++i) {
+			touchwin(win[i]);
+			wnoutrefresh(win[i]);
+		}
 
-				filebuf_pos = curpos_y * COLS + curpos_x;
-				if (filebuf_size < BUFSIZ || filebuf_pos < filebuf_size)
-					filebuf[filebuf_size++] = (char) ch;
-
-				if (curpos_x + 1 < COLS - 1) {
-					waddch(win[1], ch);
-					move_right(&curpos_y, &curpos_x, COLS);
-				} else {
-					// Deal with eol
-					waddch(win[1], ch);
-					curpos_x = defpos_x;
-					++curpos_y;
-				}
-*/		}
-
-		// Update options bar
-		touchwin(win[0]);
-		wnoutrefresh(win[0]);
-
-		// Update info bar
-//		mvwprintw(win[2], 0, COLS / 2 - 6, " %3d : %3d ", curpos_y, curpos_x);
-//		touchwin(win[2]);
-//		wnoutrefresh(win[2]);
-
-		curpos_y = content[ACTIVE_W].y_pos;
-		curpos_x = content[ACTIVE_W].x_pos;
-
-		// Update text field
-		wmove(win[LEFT_W], curpos_y, curpos_x);
-		touchwin(win[LEFT_W]);
-		wnoutrefresh(win[LEFT_W]);
-
-		wmove(win[RITE_W], curpos_y, curpos_x);
-		touchwin(win[RITE_W]);
-		wnoutrefresh(win[RITE_W]);
+		mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
+			COLS / 2 - 2, A_NORMAL, 9, NULL);
 
 		doupdate();
 	}

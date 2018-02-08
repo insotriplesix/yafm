@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 struct node_t {
+	int index;
 	size_t size;
 	void *data;
 	struct node_t *next;
@@ -60,20 +61,42 @@ list_init(struct list_t *_list)
 }
 
 inline void __attribute__ ((always_inline))
-list_add_data(struct list_t *_list, void *_data, size_t _sz)
+list_add_data(struct list_t *_list, int _idx, void *_data, size_t _sz)
 {
 	struct node_t *_add = node_mem_alloc(_sz);
 
 	if (!_add) return;
 
+	_add->index = _idx;
 	_add->size = _sz;
 	memcpy(_add->data, _data, _sz);
+	_add->next = NULL;
 
+	if (!_list->head) {
+		_list->head = _add;
+		_list->size++;
+		return;
+	}
+/*
 	if (!_list->head) _list->tail = _add;
 
 	_add->next = _list->head;
 	_list->head = _add;
 	_list->size++;
+*/
+	struct node_t *_end = _list->head;
+	for (; _end->next; _end = _end->next);
+//	while (!_end->next++);
+	_end->next = _add;
+	_list->size++;
+}
+
+inline void * __attribute__ ((always_inline))
+list_find_data(struct list_t *_list, int _idx)
+{
+	struct node_t *_find = _list->head;
+	for (; _find && _find->index != _idx; _find = _find->next);
+	return _find ? _find->data : NULL;
 }
 
 #endif

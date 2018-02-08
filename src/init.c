@@ -29,6 +29,7 @@ init_colors()
 	init_pair(7, COLOR_GREEN, COLOR_BLUE);		// executables
 	init_pair(8, COLOR_MAGENTA, COLOR_BLUE);	// other
 
+	init_pair(9, COLOR_WHITE, COLOR_RED);	// cursor highlight
 
 	return OK;
 }
@@ -109,13 +110,14 @@ init_windows()
 
 	// Prepare content stuff
 	for (int i = 0; i < NWINDOWS; ++i) {
-		content[i].x_pos = (i == RITE_W ? COLS / 2 + 1 : 1);
+		content[i].x_pos = 1;
 		content[i].y_pos = 1;
 		content[i].count = 0;
 		getcwd(content[i].path, PATH_MAX);
 		list_init(&content[i].files);
 	}
 
+	curs_set(0);
 	ACTIVE_W = LEFT_W;
 
 	return OK;

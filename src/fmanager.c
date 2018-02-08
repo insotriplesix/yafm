@@ -11,7 +11,8 @@ change_theme(void)
 		fg_dir, bg_dir,
 		fg_reg, bg_reg,
 		fg_exec, bg_exec,
-		fg_oth, bg_oth;
+		fg_oth, bg_oth,
+		fg_curs, bg_curs;
 
 	int choice = change_theme_popup();
 	if (choice == ERR) return ERR;
@@ -25,6 +26,7 @@ change_theme(void)
 			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLUE;
 			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLUE;
 			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLUE;
+			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
 			break;
 		case '1': // leet
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_GREEN;
@@ -34,6 +36,7 @@ change_theme(void)
 			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLACK;
 			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLACK;
 			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLACK;
+			fg_curs = COLOR_BLACK, bg_curs = COLOR_GREEN;
 			break;
 		case '2': // icy
 			fg_menu = COLOR_CYAN, bg_menu = COLOR_BLACK;
@@ -42,7 +45,8 @@ change_theme(void)
 			fg_dir = COLOR_BLUE, bg_dir = COLOR_WHITE;
 			fg_reg = COLOR_BLACK, bg_reg = COLOR_WHITE;
 			fg_exec = COLOR_GREEN, bg_exec = COLOR_WHITE;
-			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_WHITE;
+			fg_oth = COLOR_RED, bg_oth = COLOR_WHITE;
+			fg_curs = COLOR_WHITE, bg_curs = COLOR_MAGENTA;
 			break;
 		case '3': // hell
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_RED;
@@ -52,6 +56,7 @@ change_theme(void)
 			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLACK;
 			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLACK;
 			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLACK;
+			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
 			break;
 		default:
 			return OK;
@@ -83,6 +88,10 @@ change_theme(void)
 	wattrset(win[LEFT_W], COLOR_PAIR(8));
 	wattrset(win[RITE_W], COLOR_PAIR(8));
 
+	init_pair(9, fg_curs, bg_curs);
+	wattrset(win[LEFT_W], COLOR_PAIR(9));
+	wattrset(win[RITE_W], COLOR_PAIR(9));
+
 	return OK;
 }
 
@@ -110,7 +119,7 @@ change_theme_popup(void)
 	wattroff(win, COLOR_PAIR(4));
 	wbkgd(win, COLOR_PAIR(3));
 
-	curs_set(0);
+//	curs_set(0);
 
 	wmove(win, line++, 1);
 	waddstr(win, " [0] def  ");
@@ -133,7 +142,7 @@ change_theme_popup(void)
 	wrefresh(win);
 	delwin(win);
 
-	curs_set(1);
+//	curs_set(1);
 
 	return choice;
 }
@@ -159,7 +168,7 @@ get_extra(void)
 
 	wbkgd(win, COLOR_PAIR(1));
 
-	curs_set(0);
+//	curs_set(0);
 
 	wmove(win, line++, 1);
 	waddstr(win, "------------");
@@ -181,7 +190,7 @@ get_extra(void)
 	wrefresh(win);
 	delwin(win);
 
-	curs_set(1);
+//	curs_set(1);
 
 	return OK;
 }
@@ -210,10 +219,10 @@ get_help(void)
 	wattroff(win, COLOR_PAIR(4));
 	wbkgd(win, COLOR_PAIR(3));
 
-	curs_set(0);
+//	curs_set(0);
 
 	wmove(win, line++, win_width / 3);
-	waddstr(win, "YATE v1.0");
+	waddstr(win, "YAFM v1.0");
 	wmove(win, line++, 1);
 	waddstr(win, "");
 	wmove(win, line++, 1);
@@ -249,7 +258,7 @@ get_help(void)
 	wrefresh(win);
 	delwin(win);
 
-	curs_set(1);
+//	curs_set(1);
 
 	return OK;
 }
@@ -416,15 +425,19 @@ fcmpr(const void *a, const void *b)
 	const char *f2 = *(const char **) b;
 
 	if (f1[0] == '/')
-		return 1;
-	else if (f2[0] == '/')
 		return -1;
+	else if (f2[0] == '/')
+		return 1;
+	else if (f1[0] == '~')
+		return -1;
+	else if (f2[0] == '~')
+		return 1;
 	else if (f1[0] == '*')
-		return -strcmp(++f1, f2);
+		return strcmp(++f1, f2);
 	else if (f2[0] == '*')
-		return -strcmp(f1, ++f2);
+		return strcmp(f1, ++f2);
 	else
-		return -strcmp(f1, f2);
+		return strcmp(f1, f2);
 }
 
 int
@@ -455,7 +468,7 @@ grab_files(enum win_t active)
 //		}
 
 		sprintf(fpath, "%s/%s", content[active].path, namelist[i]->d_name);
-		stat(fpath, &finfo);
+		lstat(fpath, &finfo);
 
 		if (S_ISDIR(finfo.st_mode))
 			prefix[0] = '/';
@@ -478,7 +491,7 @@ grab_files(enum win_t active)
 	list_mem_free(list);
 
 	for (int i = 0; i < fcount; ++i)
-		list_add_data(list, files[i], strlen(files[i]));
+		list_add_data(list, i + 1, files[i], strlen(files[i]));
 
 	content[active].count = fcount;
 
@@ -487,6 +500,45 @@ grab_files(enum win_t active)
 
 	free(files);
 	free(namelist);
+
+	return OK;
+}
+
+int
+dim_cursor(void)
+{
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
+		COLS / 2 - 2, A_DIM | A_REVERSE, 9, NULL);
+
+	return OK;
+}
+
+int
+set_default_attr(void)
+{
+	int color;
+	char *data = list_find_data(&content[ACTIVE_W].files, content[ACTIVE_W].y_pos);
+
+	if (data == NULL)
+		return OK;
+
+	switch (data[0]) {
+	case '/':
+		color = 5;
+		break;
+	case '*':
+		color = 7;
+		break;
+	case '~':
+		color = 8;
+		break;
+	default:
+		color = 6;
+		break;
+	}
+
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
+		COLS / 2 - 2, A_NORMAL, color, NULL);
 
 	return OK;
 }
