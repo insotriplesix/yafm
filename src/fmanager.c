@@ -2,6 +2,67 @@
 
 char filename[FILENAME_MAX];
 
+void
+draw_window(enum win_t type)
+{
+	wattron(win[type], COLOR_PAIR(4));
+	box(win[type], ACS_VLINE, ACS_HLINE);
+	wattroff(win[type], COLOR_PAIR(4));
+
+	switch (type) {
+		case MENU_W:
+			draw_menu(type);
+			break;
+		case LEFT_W:
+			draw_left(type);
+			break;
+		case RITE_W:
+			draw_rite(type);
+			break;
+		default:
+			break;
+	}
+
+	wrefresh(win[type]);
+}
+
+void
+draw_menu(enum win_t type)
+{
+	wbkgd(win[type], COLOR_PAIR(4));
+
+	int offset = 2;
+
+	wattron(win[type], COLOR_PAIR(1));
+	mvwprintw(win[type], 1, offset, "  F4 - File  ");
+	offset += 15;
+	mvwprintw(win[type], 1, offset, "  F5 - ????  ");
+	offset += 15;
+	mvwprintw(win[type], 1, offset, "  F6 - Extra  ");
+	offset += 16;
+	mvwprintw(win[type], 1, offset, "  F7 - Help  ");
+	offset += 15;
+	mvwprintw(win[type], 1, offset, "  F8 - Exit  ");
+	mvwprintw(win[type], 1, COLS - 20, " made by 5aboteur ");
+	wattroff(win[type], COLOR_PAIR(1));
+}
+
+void
+draw_left(enum win_t type)
+{
+	wbkgd(win[type], COLOR_PAIR(2));
+
+	/* ... */
+}
+
+void
+draw_rite(enum win_t type)
+{
+	wbkgd(win[type], COLOR_PAIR(2));
+
+	/* ... */
+}
+
 int
 change_theme(void)
 {
@@ -424,7 +485,11 @@ fcmpr(const void *a, const void *b)
 	const char *f1 = *(const char **) a;
 	const char *f2 = *(const char **) b;
 
-	if (f1[0] == '/')
+	if (f1[0] == '/' && f1[1] == '.' && f1[2] == '\0')
+		return 1;
+	if (f2[0] == '/' && f2[1] == '.' && f2[2] == '\0')
+		return -1;
+	else if (f1[0] == '/')
 		return -1;
 	else if (f2[0] == '/')
 		return 1;
@@ -462,11 +527,6 @@ grab_files(enum win_t active)
 		files[i] = calloc(FILENAME_MAX, sizeof(char));
 
 	for (int i = fcount - 1; i >= 0; --i) {
-//		if (namelist[i]->d_name[0] == '.' &&
-//			namelist[i]->d_name[1] != '.') {
-//			continue;
-//		}
-
 		sprintf(fpath, "%s/%s", content[active].path, namelist[i]->d_name);
 		lstat(fpath, &finfo);
 
@@ -490,10 +550,10 @@ grab_files(enum win_t active)
 	struct list_t *list = &content[active].files;
 	list_mem_free(list);
 
-	for (int i = 0; i < fcount; ++i)
+	for (int i = 0; i < fcount - 1; ++i)
 		list_add_data(list, i + 1, files[i], strlen(files[i]));
 
-	content[active].count = fcount;
+	content[active].count = fcount - 1;
 
 	for (int i = 0; i < fcount; ++i)
 		free(files[i]);
@@ -508,7 +568,7 @@ int
 dim_cursor(void)
 {
 	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
-		COLS / 2 - 2, A_DIM | A_REVERSE, 9, NULL);
+		COLS / 2 - 2, A_DIM | A_REVERSE, CURSOR_CLR, NULL);
 
 	return OK;
 }
@@ -547,7 +607,8 @@ int
 show_files(enum win_t active)
 {
 	struct node_t *head = content[active].files.head;
-	int line = content[active].y_pos;
+//	int line = content[active].y_pos;
+	int line = 1;
 
 	while (head) {
 		int color;
@@ -582,4 +643,42 @@ int
 display_content(enum win_t active)
 {
 	return grab_files(active) & show_files(active);
+}
+
+int
+change_dir_to(char *dirname)
+{
+	char newpath[PATH_MAX];
+	sprintf(newpath, "%s/%s", content[ACTIVE_W].path, dirname);
+
+	if (chdir(newpath) == ERR)
+		return ERR;
+
+	wclear(win[ACTIVE_W]);
+	draw_window(ACTIVE_W);
+
+	getcwd(content[ACTIVE_W].path, PATH_MAX);
+	display_content(ACTIVE_W);
+
+	content[ACTIVE_W].y_pos = 1;
+	content[ACTIVE_W].x_pos = 1;
+
+	return OK;
+}
+
+void
+finalize(void)
+{
+	for (int i = 0; i < NWINDOWS; ++i)
+		delwin(win[i]);
+
+	endwin();
+}
+
+int
+exec_prog(char *progname)
+{
+	char prog[PATH_MAX + FILENAME_MAX];
+	sprintf(prog, "%s/%s", content[ACTIVE_W].path, ++progname);
+	return execl(prog, prog, (char *) NULL);
 }

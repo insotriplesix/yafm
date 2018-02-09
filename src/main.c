@@ -5,33 +5,11 @@
 int
 main(/*int argc, char *argv[]*/)
 {
-	int ch, rc = OK;
-
-	if (init_ncurses() | init_colors() | init_windows()) {
-		endwin();
-		fprintf(stderr, "Initialize stage error.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if (LINES < 6 || COLS < 98) {
-		endwin();
-		fprintf(stderr, "Terminal window is too small.\n"
-			"Min: 6x98, your: %dx%d\n", LINES, COLS);
-		exit(EXIT_FAILURE);
-	}
-
-	int defpos_y = 1, defpos_x = 1;
-//	int *curpos_y, *curpos_x;
-
+	int ch, rc = OK, status;
+	char *name;
 	int is_exit = FALSE;
 
-	if (display_content(LEFT_W) | display_content(RITE_W)) {
-		endwin();
-		fprintf(stderr, "Cannot display directory files.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	mvwchgat(win[ACTIVE_W], defpos_y, defpos_x, COLS / 2 - 2, A_NORMAL, 9, NULL);
+	initialize();
 
 	while (!is_exit) {
 		ch = wgetch(win[ACTIVE_W]);
@@ -64,7 +42,7 @@ main(/*int argc, char *argv[]*/)
 				break;
 			case KEY_HOME:
 				set_default_attr();
-				content[ACTIVE_W].y_pos = defpos_y;
+				content[ACTIVE_W].y_pos = DEFPOS_Y;
 				wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
 				break;
 			case KEY_END:
@@ -102,6 +80,35 @@ main(/*int argc, char *argv[]*/)
 				rc = change_theme();
 				if (rc == ERR) is_exit = TRUE;
 				break;
+			// Edit / exec / chdir
+			case KEY_ENTER:
+			case KEY_NL:
+				name = list_find_data(&content[ACTIVE_W].files, content[ACTIVE_W].y_pos);
+
+				if (name == NULL) // output err
+					break;
+
+				switch (name[0]) {
+					case '/':
+						set_default_attr();
+						rc = change_dir_to(name);
+						break;
+					case '*':
+						if (fork() == 0) {
+							rc = exec_prog(name);
+						} else {
+							wait(&status);
+							finalize();
+							restore_windows();
+						}
+						break;
+					case '~':
+						break;
+					default:
+						break;
+				}
+
+				break;
 			// Print character
 			default:
 				break;
@@ -114,15 +121,12 @@ main(/*int argc, char *argv[]*/)
 		}
 
 		mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
-			COLS / 2 - 2, A_NORMAL, 9, NULL);
+			COLS / 2 - 2, A_NORMAL, CURSOR_CLR, NULL);
 
 		doupdate();
 	}
 
-	for (int i = 0; i < NWINDOWS; ++i)
-		delwin(win[i]);
-
-	endwin();
+	finalize();
 
 	return rc;
 }

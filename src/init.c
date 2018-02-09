@@ -2,6 +2,25 @@
 
 char filename[FILENAME_MAX];
 
+void
+initialize(void)
+{
+    if (init_ncurses() | init_colors() | init_windows()) {
+        endwin();
+        fprintf(stderr, "Initializing error.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (display_content(LEFT_W) | display_content(RITE_W)) {
+        endwin();
+        fprintf(stderr, "Displaying error.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    mvwchgat(win[ACTIVE_W], DEFPOS_Y, DEFPOS_X, COLS / 2 - 2,
+		A_NORMAL, CURSOR_CLR, NULL);
+}
+
 /* Init ncurses library */
 int
 init_ncurses()
@@ -45,6 +64,8 @@ init_windows()
 		return ERR;
 	}
 
+	draw_window(MENU_W);
+/*
 	wattron(win[MENU_W], COLOR_PAIR(4));
 	box(win[MENU_W], ACS_VLINE, ACS_HLINE);
 	wattroff(win[MENU_W], COLOR_PAIR(4));
@@ -66,7 +87,7 @@ init_windows()
 	wattroff(win[MENU_W], COLOR_PAIR(1));
 
 	wrefresh(win[MENU_W]);
-
+*/
 	win[LEFT_W] = newwin(LINES - 3, COLS / 2, 3, 0);
 
 	if (win[LEFT_W] == NULL) {
@@ -74,13 +95,15 @@ init_windows()
 		return ERR;
 	}
 
+	draw_window(LEFT_W);
+/*
 	wattron(win[LEFT_W], COLOR_PAIR(4));
 	box(win[LEFT_W], ACS_VLINE, ACS_HLINE);
 	wattroff(win[LEFT_W], COLOR_PAIR(4));
 	wbkgd(win[LEFT_W], COLOR_PAIR(2));
 
 	wrefresh(win[LEFT_W]);
-
+*/
 	win[RITE_W] = newwin(LINES - 3, COLS / 2, 3, COLS / 2);
 
 	if (win[RITE_W] == NULL) {
@@ -88,25 +111,27 @@ init_windows()
 		return ERR;
 	}
 
+	draw_window(RITE_W);
+/*
 	wattron(win[RITE_W], COLOR_PAIR(4));
 	box(win[RITE_W], ACS_VLINE, ACS_HLINE);
 	wattroff(win[RITE_W], COLOR_PAIR(4));
 	wbkgd(win[RITE_W], COLOR_PAIR(2));
 
 	wrefresh(win[RITE_W]);
-
+*/
 	// Enable scrolling, func keys, arrows etc.
 	keypad(win[LEFT_W], TRUE);
-	wmove(win[LEFT_W], 1, 1);
-	scrollok(win[LEFT_W], TRUE);
-	idlok(win[LEFT_W], TRUE);
-	wrefresh(win[LEFT_W]);
+//	wmove(win[LEFT_W], 1, 1);
+//	scrollok(win[LEFT_W], TRUE);
+//	idlok(win[LEFT_W], TRUE);
+//	wrefresh(win[LEFT_W]);
 
 	keypad(win[RITE_W], TRUE);
-	wmove(win[RITE_W], 1, 1);
-	scrollok(win[RITE_W], TRUE);
-	idlok(win[RITE_W], TRUE);
-	wrefresh(win[RITE_W]);
+//	wmove(win[RITE_W], 1, 1);
+//	scrollok(win[RITE_W], TRUE);
+//	idlok(win[RITE_W], TRUE);
+//	wrefresh(win[RITE_W]);
 
 	// Prepare content stuff
 	for (int i = 0; i < NWINDOWS; ++i) {

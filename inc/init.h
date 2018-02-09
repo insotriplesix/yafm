@@ -3,6 +3,10 @@
 
 #include "fmanager.h"
 
+#define restore_windows() (initialize())
+
+void initialize();
+
 int init_ncurses();
 int init_colors();
 int init_windows();
