@@ -44,6 +44,7 @@ struct win_cont_t {
 	int x_pos;
 	int y_pos;
 	int count;
+	int y_off;
 	char path[PATH_MAX];
 	struct list_t files;
 };

@@ -11,6 +11,13 @@ initialize(void)
         exit(EXIT_FAILURE);
     }
 
+	if (LINES < 6 || COLS < 98) {
+		endwin();
+		fprintf(stderr, "Terminal window is too small.\n"
+			"Min: 6x98, your: %dx%d\n", LINES, COLS);
+		exit(EXIT_FAILURE);
+	}
+
     if (display_content(LEFT_W) | display_content(RITE_W)) {
         endwin();
         fprintf(stderr, "Displaying error.\n");
@@ -138,6 +145,7 @@ init_windows()
 		content[i].x_pos = 1;
 		content[i].y_pos = 1;
 		content[i].count = 0;
+		content[i].y_off = 0;
 		getcwd(content[i].path, PATH_MAX);
 		list_init(&content[i].files);
 	}

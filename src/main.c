@@ -32,12 +32,26 @@ main(/*int argc, char *argv[]*/)
 				if (content[ACTIVE_W].y_pos - 1 > 0) {
 					set_default_attr();
 					content[ACTIVE_W].y_pos--;
+					mvwprintw(win[ACTIVE_W], 0, 3, "%d", content[ACTIVE_W].y_pos);
+				} else if (content[ACTIVE_W].y_off) {
+					content[ACTIVE_W].y_off--;
+					wclear(win[ACTIVE_W]);
+					draw_window(ACTIVE_W);
+					display_content(ACTIVE_W);
 				}
 				break;
 			case KEY_DOWN:
-				if (content[ACTIVE_W].y_pos + 1 < content[ACTIVE_W].count + 1) {
+				if ((content[ACTIVE_W].y_pos < LINES - 5) &&
+					(content[ACTIVE_W].y_pos + 1 < content[ACTIVE_W].count + 1)) {
 					set_default_attr();
 					content[ACTIVE_W].y_pos++;
+					mvwprintw(win[ACTIVE_W], 0, 3, "%d", content[ACTIVE_W].y_pos);
+				} else if (content[ACTIVE_W].y_pos + 1 == LINES - 4 &&
+					content[ACTIVE_W].y_off < content[ACTIVE_W].count - LINES + 5) {
+					content[ACTIVE_W].y_off++;
+					wclear(win[ACTIVE_W]);
+					draw_window(ACTIVE_W);
+					display_content(ACTIVE_W);
 				}
 				break;
 			case KEY_HOME:

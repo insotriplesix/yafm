@@ -607,12 +607,19 @@ int
 show_files(enum win_t active)
 {
 	struct node_t *head = content[active].files.head;
-//	int line = content[active].y_pos;
-	int line = 1;
+	int scroll_offset = content[active].y_off;
 
-	while (head) {
+	if (content[active].y_off) {
+		for (int i = 0; i < scroll_offset && head; ++i)
+			head = head->next;
+	}
+
+	int line = DEFPOS_Y;
+
+	for (int i = 0; i < LINES - 5 && head; ++i) {
 		int color;
 		char *data = head->data;
+
 		switch (data[0]) {
 		case '/':
 			color = 5;
