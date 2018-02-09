@@ -1,41 +1,58 @@
 #ifndef __MOVEMENT_H__
 #define __MOVEMENT_H__
 
+#include "gui.h"
 #include "manager.h"
 
-inline void __attribute__ ((always_inline))
+inline void
+__attribute__ ((always_inline))
 move_left(void)
 {
 	if (ACTIVE_W == RITE_W) {
-		wmove(win[LEFT_W], content[LEFT_W].y_pos, content[LEFT_W].x_pos);
+		dim_cursor();
 		ACTIVE_W = LEFT_W;
 	}
 }
 
-inline void __attribute__ ((always_inline))
+inline void
+__attribute__ ((always_inline))
 move_right(void)
 {
 	if (ACTIVE_W == LEFT_W) {
-		wmove(win[RITE_W], content[RITE_W].y_pos, content[RITE_W].x_pos);
+		dim_cursor();
 		ACTIVE_W = RITE_W;
 	}
 }
 
-inline void __attribute__ ((always_inline))
-move_up(int border)
+inline void
+__attribute__ ((always_inline))
+move_up(void)
 {
-	if (content[ACTIVE_W].y_pos - 1 > border) {
+	if (content[ACTIVE_W].y_pos - 1 > 0) {
+		set_default_attr();
 		content[ACTIVE_W].y_pos--;
-		wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
+	} else if (content[ACTIVE_W].y_off) {
+		content[ACTIVE_W].y_off--;
+		wclear(win[ACTIVE_W]);
+		draw_window(ACTIVE_W);
+		display_content(ACTIVE_W);
 	}
 }
 
-inline void __attribute__ ((always_inline))
-move_down(int border)
+inline void
+__attribute__ ((always_inline))
+move_down(void)
 {
-	if (content[ACTIVE_W].y_pos + 1 < border) {
+	if ((content[ACTIVE_W].y_pos < LINES - 5) &&
+		(content[ACTIVE_W].y_pos + 1 < content[ACTIVE_W].count + 1)) {
+		set_default_attr();
 		content[ACTIVE_W].y_pos++;
-		wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
+	} else if (content[ACTIVE_W].y_pos + 1 == LINES - 4 &&
+		content[ACTIVE_W].y_off < content[ACTIVE_W].count - LINES + 5) {
+		content[ACTIVE_W].y_off++;
+		wclear(win[ACTIVE_W]);
+		draw_window(ACTIVE_W);
+		display_content(ACTIVE_W);
 	}
 }
 

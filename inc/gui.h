@@ -32,4 +32,19 @@ int get_extra_opt(void);
 
 int get_help(void);
 
+inline void __attribute__ ((always_inline))
+update_gui(void)
+{
+	for (int i = 0; i < NWINDOWS; ++i) {
+		touchwin(win[i]);
+		wnoutrefresh(win[i]);
+	}
+
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
+		content[ACTIVE_W].x_pos, COLS / 2 - 2, A_NORMAL,
+		CURSOR_C, NULL);
+
+	doupdate();
+}
+
 #endif

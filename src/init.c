@@ -4,10 +4,13 @@
 void
 finalize(void)
 {
-	for (int i = 0; i < NWINDOWS; ++i)
+	for (int i = 0; i < NWINDOWS; ++i) {
+		list_mem_free(&content[i].files);
 		delwin(win[i]);
+	}
 
 	endwin();
+
 }
 
 void
