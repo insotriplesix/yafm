@@ -11,7 +11,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "init.h"
 #include "list.h"
 
 #define KEY_BS '\b'
@@ -31,14 +30,10 @@
 #define DEFPOS_X 1
 #define NWINDOWS 3
 
-#define CURSOR_CLR 9
-
 WINDOW *win[NWINDOWS];
 
 enum win_t { MENU_W, LEFT_W, RITE_W };
-
 int ACTIVE_W;
-extern char filename[FILENAME_MAX];
 
 struct win_cont_t {
 	int x_pos;
@@ -51,32 +46,17 @@ struct win_cont_t {
 
 struct win_cont_t content[NWINDOWS];
 
-void draw_window(enum win_t type);
-void draw_menu(enum win_t type);
-void draw_left(enum win_t type);
-void draw_rite(enum win_t type);
+void dim_cursor(void);
+int set_default_attr(void);
 
-int change_theme(void);
-int change_theme_popup(void);
+int fcmpr(const void *a, const void *b);
 
-int get_extra(void);
-int get_help(void);
-
-int open_file(char **buf, int *size, bool from_arg);
-int open_file_popup(void);
-
-int save_file(char *buf, int size);
-int save_file_popup(void);
-
+int display_content(enum win_t active);
 int grab_files(enum win_t active);
 int show_files(enum win_t active);
-int display_content(enum win_t active);
 
-int dim_cursor(void);
-int set_default_attr(void);
-int change_dir_to(char *dirname);
-
-void finalize(void);
-int exec_prog(char *progname);
+int change_dir_to(char *name);
+int edit_file(char *name);
+int exec_prog(char *name);
 
 #endif

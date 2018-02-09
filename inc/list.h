@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 struct node_t {
-	int index;
-	size_t size;
-	void *data;
+	int index;		// index in the list
+	size_t size;	// size of data
+	void *data;		// payload
 	struct node_t *next;
 };
 
@@ -16,7 +16,8 @@ struct list_t {
 	struct node_t *tail;
 };
 
-inline struct node_t * __attribute__ ((always_inline))
+inline struct node_t *
+__attribute__ ((always_inline))
 node_mem_alloc(size_t _sz)
 {
 	struct node_t *_new =
@@ -61,7 +62,8 @@ list_init(struct list_t *_list)
 }
 
 inline void __attribute__ ((always_inline))
-list_add_data(struct list_t *_list, int _idx, void *_data, size_t _sz)
+list_add_data(struct list_t *_list, int _idx,
+	void *_data, size_t _sz)
 {
 	struct node_t *_add = node_mem_alloc(_sz);
 
@@ -77,16 +79,9 @@ list_add_data(struct list_t *_list, int _idx, void *_data, size_t _sz)
 		_list->size++;
 		return;
 	}
-/*
-	if (!_list->head) _list->tail = _add;
 
-	_add->next = _list->head;
-	_list->head = _add;
-	_list->size++;
-*/
 	struct node_t *_end = _list->head;
 	for (; _end->next; _end = _end->next);
-//	while (!_end->next++);
 	_end->next = _add;
 	_list->size++;
 }
@@ -95,7 +90,8 @@ inline void * __attribute__ ((always_inline))
 list_find_data(struct list_t *_list, int _idx)
 {
 	struct node_t *_find = _list->head;
-	for (; _find && _find->index != _idx; _find = _find->next);
+	for (; _find && _find->index != _idx;
+		_find = _find->next);
 	return _find ? _find->data : NULL;
 }
 

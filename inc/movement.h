@@ -1,7 +1,7 @@
 #ifndef __MOVEMENT_H__
 #define __MOVEMENT_H__
 
-#include "fmanager.h"
+#include "manager.h"
 
 inline void __attribute__ ((always_inline))
 move_left(void)

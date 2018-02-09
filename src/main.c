@@ -1,5 +1,6 @@
-#include "fmanager.h"
+#include "gui.h"
 #include "init.h"
+#include "manager.h"
 #include "movement.h"
 
 int
@@ -64,18 +65,22 @@ main(/*int argc, char *argv[]*/)
 				content[ACTIVE_W].y_pos = content[ACTIVE_W].count;
 				wmove(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos);
 				break;
-			// Open file
+			// File options
 			case KEY_F(4):
 			case CTRL_O:
+				rc = get_file_opt();
+				if (rc == ERR) is_exit = TRUE;
 				break;
-			// Save to file
+			// Dir options
 			case KEY_F(5):
 			case CTRL_K:
+				rc = get_dir_opt();
+				if (rc == ERR) is_exit = TRUE;
 				break;
 			// Extra
 			case KEY_F(6):
 			case CTRL_E:
-				rc = get_extra();
+				rc = get_extra_opt();
 				if (rc == ERR) is_exit = TRUE;
 				break;
 			// Help
@@ -102,6 +107,8 @@ main(/*int argc, char *argv[]*/)
 				if (name == NULL) // output err
 					break;
 
+				curs_set(1);
+
 				switch (name[0]) {
 					case '/':
 						set_default_attr();
@@ -119,9 +126,17 @@ main(/*int argc, char *argv[]*/)
 					case '~':
 						break;
 					default:
+						if (fork() == 0) {
+							rc = edit_file(name);
+						} else {
+							wait(&status);
+							finalize();
+							restore_windows();
+						}
 						break;
 				}
 
+				curs_set(0);
 				break;
 			// Print character
 			default:
@@ -135,7 +150,7 @@ main(/*int argc, char *argv[]*/)
 		}
 
 		mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos, content[ACTIVE_W].x_pos,
-			COLS / 2 - 2, A_NORMAL, CURSOR_CLR, NULL);
+			COLS / 2 - 2, A_NORMAL, CURSOR_C, NULL);
 
 		doupdate();
 	}
