@@ -55,6 +55,8 @@ int display_content(enum win_t active);
 int grab_files(enum win_t active);
 int show_files(enum win_t active);
 
+int do_action(void);
+
 int change_dir_to(char *name);
 int edit_file(char *name);
 int exec_prog(char *name);

@@ -1,3 +1,4 @@
+#include "init.h"
 #include "gui.h"
 #include "manager.h"
 
@@ -181,6 +182,49 @@ show_files(enum win_t active)
 	wrefresh(win[active]);
 
 	return OK;
+}
+
+int
+do_action(void)
+{
+	int rc = OK, status;
+	char *name = list_find_data(&content[ACTIVE_W].files,
+		content[ACTIVE_W].y_pos);
+
+	if (name == NULL) // output err
+		return ERR;
+
+	curs_set(1);
+
+	switch (name[0]) {
+		case '/':
+			set_default_attr();
+			rc = change_dir_to(name);
+			break;
+		case '*':
+			if (fork() == 0) {
+				rc = exec_prog(name);
+			} else {
+				wait(&status);
+				finalize();
+				restore_windows();
+			}
+			break;
+		case '~':
+			break;
+		default:
+			if (fork() == 0) {
+				rc = edit_file(name);
+			} else {
+				wait(&status);
+				finalize();
+				restore_windows();
+			}
+			break;
+	}
+	
+	curs_set(0);
+	return rc;
 }
 
 int
