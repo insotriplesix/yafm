@@ -1,15 +1,15 @@
 #include "init.h"
 #include "gui.h"
 #include "manager.h"
-
-void
+/*
+inline void __attribute__ ((always_inline))
 dim_cursor(void)
 {
 	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
 		content[ACTIVE_W].x_pos, COLS / 2 - 2,
 		A_DIM | A_REVERSE, CURSOR_C, NULL);
 }
-
+*/
 /* Set default attributes to the eol */
 int
 set_default_attr(void)
@@ -185,7 +185,7 @@ show_files(enum win_t active)
 }
 
 int
-do_action(void)
+perform_action(char *action)
 {
 	int rc = OK, status;
 	char *name = list_find_data(&content[ACTIVE_W].files,
@@ -213,16 +213,24 @@ do_action(void)
 		case '~':
 			break;
 		default:
-			if (fork() == 0) {
-				rc = edit_file(name);
-			} else {
-				wait(&status);
-				finalize();
-				restore_windows();
+			if (strcmp(action, "edit") == 0) {
+				if (fork() == 0) {
+					rc = edit_file(name);
+				} else {
+					wait(&status);
+					finalize();
+					restore_windows();
+				}
+			} else if (strcmp(action, "copy") == 0) {
+				copy_file(name);
+			} else if (strcmp(action, "paste") == 0) {
+				rc = paste_file();
+			} else if (strcmp(action, "remove") == 0) {
+				rc = remove_file(name);
 			}
 			break;
 	}
-	
+
 	curs_set(0);
 	return rc;
 }
@@ -247,6 +255,57 @@ change_dir_to(char *name)
 
 	return OK;
 }
+/*
+inline void __attribute__ ((always_inline))
+copy_file(char *name)
+{
+	sprintf(copy_buffer, "%s/%s", content[ACTIVE_W].path, ++name);
+}
+*/
+int
+create_file(char *name)
+{
+	int rc = OK;
+
+/*
+	if (buf == NULL) {
+		fclose(fp);
+		return rc;
+	}
+*/
+
+//	char file_path[PATH_MAX];
+	char file_name[FILENAME_MAX];
+
+	size_t len = strlen(name);
+	size_t i;
+
+	for (i = len; i > 0; --i)
+		if (name[i] == '/') break;
+
+//	strncpy(file_path, name, len - i);
+//	file_path[len - i] = '\0';
+
+	strncpy(file_name, name + len, i);
+	file_name[i] = '\0';
+
+	FILE *fin = fopen(name, "r");
+	if (fin == NULL) return rc;
+
+	FILE *fout = fopen(file_name, "w");
+	if (fout == NULL) { fclose(fin); return rc; }
+
+	char buf[BUFSIZ];
+	size_t nbytes;
+
+	while ((nbytes = fread(buf, sizeof(char), BUFSIZ, fin)))
+		fwrite(buf, sizeof(char), nbytes, fout);
+
+	fclose(fin);
+	fclose(fout);
+
+	return rc;
+}
 
 int
 edit_file(char *name)
@@ -255,7 +314,6 @@ edit_file(char *name)
 	char file_path[PATH_MAX + FILENAME_MAX];
 	sprintf(editor_path, "/home/saboteur/Programming/github/YATE/yate");
 	sprintf(file_path, "%s/%s", content[ACTIVE_W].path, ++name);
-	mvwprintw(win[ACTIVE_W], 0, 10, "%s", file_path);
 	return execl(editor_path, editor_path, file_path, (char *) NULL);
 }
 
@@ -265,4 +323,30 @@ exec_prog(char *name)
 	char prog[PATH_MAX + FILENAME_MAX];
 	sprintf(prog, "%s/%s", content[ACTIVE_W].path, ++name);
 	return execl(prog, prog, (char *) NULL);
+}
+
+int
+paste_file(void)
+{
+	return create_file(copy_buffer);
+}
+
+int
+remove_file(char *name)
+{
+	int rc = OK;
+	char file_path[PATH_MAX + FILENAME_MAX];
+
+	sprintf(file_path, "%s/%s", content[ACTIVE_W].path, ++name);
+
+	rc = unlink(file_path);
+	if (rc == ERR) return rc;
+
+	for (int i = 0; i < NWINDOWS; ++i)
+		repaint_window(i);
+
+	if (display_content(LEFT_W) | display_content(RITE_W))
+		return ERR;
+
+	return rc;
 }

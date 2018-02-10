@@ -10,6 +10,7 @@
 // TODO 5: file options
 // TODO 6: dir options
 // TODO 7: valgrind memcheck
+// TODO 8: fix scroll painting
 
 int
 main(void)

@@ -13,6 +13,8 @@
 #define SYM_CLR		COLOR_PAIR(8)
 #define CURSOR_CLR	COLOR_PAIR(9)
 
+#define repaint_window(wtype) draw_window(wtype)
+
 enum color_t {
 	NONE_C, MENU_C, EDIT_C, POPUP_C, BORDER_C,
 	DIR_C, REG_C, EXE_C, SYM_C, CURSOR_C

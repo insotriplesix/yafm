@@ -36,6 +36,8 @@ draw_rite(enum win_t wtype)
 void
 draw_window(enum win_t wtype)
 {
+	wclear(win[wtype]);
+
 	wattron(win[wtype], BORDER_CLR);
 	box(win[wtype], ACS_VLINE, ACS_HLINE);
 	wattroff(win[wtype], BORDER_CLR);

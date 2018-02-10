@@ -18,11 +18,19 @@
 #define KEY_HT '\t'
 #define KEY_NL '\n'
 
+#define CTRL_A 1
+#define CTRL_B 2
+#define CTRL_C 3
+#define CTRL_D 4
 #define CTRL_E 5
 #define CTRL_F 6
 #define CTRL_G 7
+#define CTRL_H 8
+#define CTRL_I 9
+#define CTRL_J 10
 #define CTRL_K 11
 #define CTRL_O 15
+#define CTRL_W 23
 #define CTRL_X 24
 #define CTRL_Y 25
 
@@ -35,6 +43,8 @@ WINDOW *win[NWINDOWS];
 enum win_t { MENU_W, LEFT_W, RITE_W };
 int ACTIVE_W;
 
+char copy_buffer[PATH_MAX + FILENAME_MAX];
+
 struct win_cont_t {
 	int x_pos;
 	int y_pos;
@@ -46,7 +56,14 @@ struct win_cont_t {
 
 struct win_cont_t content[NWINDOWS];
 
-void dim_cursor(void);
+inline void __attribute__ ((always_inline))
+dim_cursor(void)
+{
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
+		content[ACTIVE_W].x_pos, COLS / 2 - 2,
+		A_DIM | A_REVERSE, 9, NULL);
+}
+
 int set_default_attr(void);
 
 int fcmpr(const void *a, const void *b);
@@ -55,10 +72,19 @@ int display_content(enum win_t active);
 int grab_files(enum win_t active);
 int show_files(enum win_t active);
 
-int do_action(void);
+int perform_action(char *action);
 
 int change_dir_to(char *name);
+int create_file(char *name);
 int edit_file(char *name);
 int exec_prog(char *name);
+int paste_file(void);
+int remove_file(char *name);
+
+inline void __attribute__ ((always_inline))
+copy_file(char *name)
+{
+	sprintf(copy_buffer, "%s/%s", content[ACTIVE_W].path, ++name);
+}
 
 #endif

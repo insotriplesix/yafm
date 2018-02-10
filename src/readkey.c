@@ -52,9 +52,18 @@ readkey(void)
 		case CTRL_G:
 			rc = change_theme();
 			break;
+		case CTRL_A:
+			rc = perform_action("copy");
+			break;
+		case CTRL_W:
+			rc = perform_action("paste");
+			break;
+		case CTRL_Y:
+			rc = perform_action("remove");
+			break;
 		case KEY_ENTER:
 		case KEY_NL:
-			rc = do_action();
+			rc = perform_action("edit");
 			break;
 		default:
 			break;
