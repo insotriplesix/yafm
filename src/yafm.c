@@ -1,16 +1,14 @@
 #include "gui.h"
 #include "init.h"
-#include "manager.h"
 #include "readkey.h"
 
-// TODO 1: config parser
+// TODO 1: fix scroll painting
 // TODO 2: better gui
 // TODO 3: attach yate
 // TODO 4: extra options
 // TODO 5: file options
 // TODO 6: dir options
-// TODO 7: valgrind memcheck
-// TODO 8: fix scroll painting
+// TODO 7: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
 
 int
 main(void)
@@ -20,9 +18,9 @@ main(void)
 	initialize();
 
 	while (0x1) {
+		update_gui();
 		rc = readkey();
 		if (rc == ERR) break;
-		update_gui();
 	}
 
 	finalize();

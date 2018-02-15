@@ -60,17 +60,25 @@ draw_window(enum win_t wtype)
 }
 
 int
-change_theme(void)
+change_theme_ed(void)
+{
+	int theme = change_theme_popup();
+	if (theme == ERR) return ERR;
+
+	return change_theme(theme);
+}
+
+int
+change_theme(int theme)
 {
 	int fg_field, bg_field, fg_menu, bg_menu,
 		fg_popup, bg_popup, fg_dir, bg_dir,
 		fg_reg, bg_reg, fg_exec, bg_exec,
 		fg_oth, bg_oth, fg_curs, bg_curs;
 
-	int choice = change_theme_popup();
-	if (choice == ERR) return ERR;
+	current_theme = (char)theme;
 
-	switch ((char)choice) {
+	switch ((char)theme) {
 		case '0': // default
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
 			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;

@@ -50,7 +50,7 @@ readkey(void)
 			exit(EXIT_SUCCESS);
 			break;
 		case CTRL_G:
-			rc = change_theme();
+			rc = change_theme_ed();
 			break;
 		case CTRL_A:
 			rc = perform_action("copy");

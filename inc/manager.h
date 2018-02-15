@@ -1,6 +1,7 @@
 #ifndef __MANAGER_H__
 #define __MANAGER_H__
 
+#include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <limits.h>
@@ -12,6 +13,9 @@
 #include <unistd.h>
 
 #include "list.h"
+
+#define CONFIG_FILE ".config"
+#define EDITOR_PATH "/home/saboteur/Programming/github/YATE/yate"
 
 #define KEY_BS '\b'
 #define KEY_CR '\r'
@@ -43,6 +47,7 @@ WINDOW *win[NWINDOWS];
 enum win_t { MENU_W, LEFT_W, RITE_W };
 int ACTIVE_W;
 
+char current_theme;
 char copy_buffer[PATH_MAX + FILENAME_MAX];
 
 struct win_cont_t {
@@ -67,6 +72,7 @@ dim_cursor(void)
 int set_default_attr(void);
 
 int fcmpr(const void *a, const void *b);
+char **split_s(char *str, const char delim);
 
 int display_content(enum win_t active);
 int grab_files(enum win_t active);
@@ -84,7 +90,8 @@ int remove_file(char *name);
 inline void __attribute__ ((always_inline))
 copy_file(char *name)
 {
-	sprintf(copy_buffer, "%s/%s", content[ACTIVE_W].path, ++name);
+	sprintf(copy_buffer, "%s/%s",
+		content[ACTIVE_W].path, ++name);
 }
 
 #endif

@@ -10,13 +10,14 @@ finalize(void)
 	}
 
 	endwin();
-
+	save_config();
 }
 
 void
 initialize(void)
 {
-	if (init_ncurses() | init_colors() | init_windows() | init_gui()) {
+	if (init_ncurses() | init_colors() | init_windows() | init_content() |
+		init_gui()) {
 		endwin();
 		fprintf(stderr, "Initializing error.\n");
 		exit(EXIT_FAILURE);
@@ -34,6 +35,8 @@ initialize(void)
 		fprintf(stderr, "Displaying error.\n");
 		exit(EXIT_FAILURE);
 	}
+
+	load_config();
 
 	mvwchgat(win[ACTIVE_W], DEFPOS_Y, DEFPOS_X, COLS / 2 - 2,
 		A_NORMAL, CURSOR_C, NULL);
@@ -59,6 +62,21 @@ init_colors(void)
 	init_pair(8, COLOR_MAGENTA, COLOR_BLUE);	// other
 
 	init_pair(9, COLOR_WHITE, COLOR_RED);		// cursor highlight
+
+	return OK;
+}
+
+int
+init_content(void)
+{
+	for (int i = 0; i < NWINDOWS; ++i) {
+		content[i].x_pos = 1;
+		content[i].y_pos = 1;
+		content[i].count = 0;
+		content[i].y_off = 0;
+		getcwd(content[i].path, PATH_MAX);
+		list_init(&content[i].files);
+	}
 
 	return OK;
 }
@@ -104,17 +122,48 @@ init_windows(void)
 	keypad(win[LEFT_W], TRUE);
 	keypad(win[RITE_W], TRUE);
 
-	// Prepare content stuff
-	for (int i = 0; i < NWINDOWS; ++i) {
-		content[i].x_pos = 1;
-		content[i].y_pos = 1;
-		content[i].count = 0;
-		content[i].y_off = 0;
-		getcwd(content[i].path, PATH_MAX);
-		list_init(&content[i].files);
+	ACTIVE_W = LEFT_W;
+
+	return OK;
+}
+
+int
+load_config(void)
+{
+	FILE *fp = fopen(CONFIG_FILE, "r");
+	if (fp == NULL)	return ERR;
+
+	char line[LINE_MAX];
+	int theme = 0;
+
+	while ((fgets(line, LINE_MAX, fp)) != NULL) {
+		if (strncmp(line, "theme", 5) == 0) {
+			char **str = split_s(line, ' ');
+
+			if (str != NULL) {
+				theme = (int)str[1][0];
+				change_theme(theme);
+			}
+
+			for (int i = 0; i < 2; ++i)
+				free(str[i]);
+			free(str);
+		}
 	}
 
-	ACTIVE_W = LEFT_W;
+	fclose(fp);
+
+	return OK;
+}
+
+int
+save_config(void)
+{
+	FILE *fp = fopen(CONFIG_FILE, "w");
+	if (fp == NULL)	return ERR;
+
+	fprintf(fp, "theme %c\n", current_theme);
+	fclose(fp);
 
 	return OK;
 }
