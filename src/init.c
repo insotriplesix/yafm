@@ -134,14 +134,14 @@ load_config(void)
 	if (fp == NULL)	return ERR;
 
 	char line[LINE_MAX];
-	int theme = 0;
+	char theme = 0;
 
 	while ((fgets(line, LINE_MAX, fp)) != NULL) {
 		if (strncmp(line, "theme", 5) == 0) {
 			char **str = split_s(line, ' ');
 
 			if (str != NULL) {
-				theme = (int)str[1][0];
+				theme = str[1][0];
 				change_theme(theme);
 			}
 

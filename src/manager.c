@@ -16,10 +16,10 @@ set_default_attr(void)
 {
 	int color;
 	char *data = list_find_data(&content[ACTIVE_W].files,
-		content[ACTIVE_W].y_pos);
+		content[ACTIVE_W].y_pos + content[ACTIVE_W].y_off);
 
 	if (data == NULL)
-		return OK;		// it's no OK but just skip that
+		return OK;		// it's not OK but just skip that
 
 	switch (data[0]) {
 	case '/':
@@ -188,10 +188,8 @@ show_files(enum win_t active)
 	struct node_t *head = content[active].files.head;
 	int scroll_offset = content[active].y_off;
 
-	if (content[active].y_off) {
-		for (int i = 0; i < scroll_offset && head; ++i)
-			head = head->next;
-	}
+	for (int i = 0; i < scroll_offset && head; ++i)
+		head = head->next;
 
 	int line = DEFPOS_Y;
 
@@ -219,6 +217,31 @@ show_files(enum win_t active)
 		wattroff(win[active], COLOR_PAIR(color));
 		head = head->next;
 	}
+
+	// Display path
+	wattron(win[active], BORDER_CLR);
+	mvwhline(win[active], 0, 3, ACS_HLINE, COLS / 2 - 6);
+
+	long len = strlen(content[active].path);
+	long halfw = COLS / 2;
+	char path[PATH_MAX];
+
+	// Don`t show full path if its out of borders
+	if ((len / (float)halfw * 100.f) > 85) {
+		strncpy(path, content[active].path,
+			sizeof(char) * (halfw - 11));
+		path[halfw - 11] = '.';
+		path[halfw - 10] = '.';
+		path[halfw - 9] = '.';
+		path[halfw - 8] = '\0';
+	} else {
+		strncpy(path, content[active].path,
+			sizeof(char) * len);
+		path[len] = '\0';
+	}
+
+	mvwprintw(win[active], 0, 3, " %s ", path);
+	wattroff(win[active], BORDER_CLR);
 
 	wrefresh(win[active]);
 

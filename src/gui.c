@@ -62,23 +62,23 @@ draw_window(enum win_t wtype)
 int
 change_theme_ed(void)
 {
-	int theme = change_theme_popup();
+	char theme = change_theme_popup();
 	if (theme == ERR) return ERR;
 
 	return change_theme(theme);
 }
 
 int
-change_theme(int theme)
+change_theme(char theme)
 {
 	int fg_field, bg_field, fg_menu, bg_menu,
 		fg_popup, bg_popup, fg_dir, bg_dir,
 		fg_reg, bg_reg, fg_exec, bg_exec,
 		fg_oth, bg_oth, fg_curs, bg_curs;
 
-	current_theme = (char)theme;
+	current_theme = theme;
 
-	switch ((char)theme) {
+	switch (theme) {
 		case '0': // default
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
 			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;
@@ -227,15 +227,15 @@ get_file_opt(void)
 	wmove(win, line++, 1);
 	waddstr(win, "-----------");
 	wmove(win, line++, 1);
-	waddstr(win, "^A - create");
+	waddstr(win, "^? - create");
 	wmove(win, line++, 1);
-	waddstr(win, "^B - edit");
+	waddstr(win, "^? - edit");
 	wmove(win, line++, 1);
-	waddstr(win, "^C - copy");
+	waddstr(win, "^? - copy");
 	wmove(win, line++, 1);
-	waddstr(win, "^D - move");
+	waddstr(win, "^? - move");
 	wmove(win, line++, 1);
-	waddstr(win, "^D - remove");
+	waddstr(win, "^? - remove");
 
 	prefresh(win, 0, 0,
 		offset_y, offset_x,
@@ -275,13 +275,13 @@ get_dir_opt(void)
 	wmove(win, line++, 1);
 	waddstr(win, "----------");
 	wmove(win, line++, 1);
-	waddstr(win, "^A - mkdir");
+	waddstr(win, "^? - mkdir");
 	wmove(win, line++, 1);
-	waddstr(win, "^B - copy");
+	waddstr(win, "^? - copy");
 	wmove(win, line++, 1);
-	waddstr(win, "^C - move");
+	waddstr(win, "^? - move");
 	wmove(win, line++, 1);
-	waddstr(win, "^D - rmdir");
+	waddstr(win, "^? - rmdir");
 
 	prefresh(win, 0, 0,
 		offset_y, offset_x,
@@ -302,7 +302,7 @@ get_extra_opt(void)
 {
 	WINDOW *win;
 
-	int win_height = 3;
+	int win_height = 2;
 	int win_width = 14;
 	int line = 0;
 
@@ -321,9 +321,7 @@ get_extra_opt(void)
 	wmove(win, line++, 1);
 	waddstr(win, "------------");
 	wmove(win, line++, 1);
-	waddstr(win, "^A - resize");
-	wmove(win, line++, 1);
-	waddstr(win, "^B - themez");
+	waddstr(win, "^G - themez");
 
 	prefresh(win, 0, 0,
 		offset_y, offset_x,
@@ -364,7 +362,7 @@ get_help(void)
 	wbkgd(win, POPUP_CLR);
 
 	wmove(win, line++, win_width / 3);
-	waddstr(win, "YAFM v1.0");
+	waddstr(win, "YAFM v1.1b");
 	wmove(win, line++, 1);
 	waddstr(win, "");
 	wmove(win, line++, 1);

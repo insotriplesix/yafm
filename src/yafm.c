@@ -2,13 +2,10 @@
 #include "init.h"
 #include "readkey.h"
 
-// TODO 1: fix scroll painting
-// TODO 2: better gui
-// TODO 3: attach yate
-// TODO 4: extra options
-// TODO 5: file options
-// TODO 6: dir options
-// TODO 7: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
+// TODO 0: disable control keys
+// TODO 1: file options
+// TODO 2: dir options
+// TODO 3: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
 
 int
 main(void)

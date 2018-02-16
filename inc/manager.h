@@ -14,7 +14,7 @@
 
 #include "list.h"
 
-#define CONFIG_FILE ".config"
+#define CONFIG_FILE "/home/saboteur/Programming/github/YAFM/.config"
 #define EDITOR_PATH "/home/saboteur/Programming/github/YATE/yate"
 
 #define KEY_BS '\b'

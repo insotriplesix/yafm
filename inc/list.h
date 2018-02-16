@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 struct node_t {
-	int index;		// index in the list
-	size_t size;	// size of data
-	void *data;		// payload
+	int index;				// index in the list
+	size_t size;			// size of data
+	void *data;				// payload
 	struct node_t *next;
 };
 
@@ -70,8 +70,8 @@ list_add_data(struct list_t *_list, int _idx,
 	if (!_add) return;
 
 	_add->index = _idx;
-	_add->size = _sz;
-	memcpy(_add->data, _data, _sz);
+//	_add->size = _sz;
+	memcpy(_add->data, _data, sizeof(char) * _sz);
 	_add->next = NULL;
 
 	if (!_list->head) {
