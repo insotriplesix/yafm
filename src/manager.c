@@ -11,6 +11,28 @@ dim_cursor(void)
 }
 */
 /* Set default attributes to the eol */
+
+void
+enable_raw_mode(void)
+{
+	tcgetattr(STDIN_FILENO, &term_attr);
+
+	struct termios raw = term_attr;
+
+	raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+	raw.c_oflag &= ~(OPOST);
+	raw.c_cflag |= (CS8);
+	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void
+disable_raw_mode(void)
+{
+	tcsetattr(STDIN_FILENO, TCSAFLUSH, &term_attr);
+}
+
 int
 set_default_attr(void)
 {

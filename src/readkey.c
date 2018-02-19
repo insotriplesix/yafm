@@ -29,11 +29,11 @@ readkey(void)
 			content[ACTIVE_W].y_pos = content[ACTIVE_W].count;
 			break;
 		case KEY_F(4):
-		case CTRL_O:
+		case CTRL_F:
 			rc = get_file_opt();
 			break;
 		case KEY_F(5):
-		case CTRL_K:
+		case CTRL_D:
 			rc = get_dir_opt();
 			break;
 		case KEY_F(6):
@@ -41,7 +41,7 @@ readkey(void)
 			rc = get_extra_opt();
 			break;
 		case KEY_F(7):
-		case CTRL_F:
+		case CTRL_I:
 			rc = get_help();
 			break;
 		case KEY_F(8):

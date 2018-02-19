@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <termios.h>
 #include <unistd.h>
 
 #include "list.h"
@@ -50,6 +51,8 @@ int ACTIVE_W;
 char current_theme;
 char copy_buffer[PATH_MAX + FILENAME_MAX];
 
+struct termios term_attr;
+
 struct win_cont_t {
 	int x_pos;
 	int y_pos;
@@ -68,6 +71,9 @@ dim_cursor(void)
 		content[ACTIVE_W].x_pos, COLS / 2 - 2,
 		A_DIM | A_REVERSE, 9, NULL);
 }
+
+void enable_raw_mode(void);
+void disable_raw_mode(void);
 
 int set_default_attr(void);
 

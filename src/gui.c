@@ -368,13 +368,13 @@ get_help(void)
 	wmove(win, line++, 1);
 	waddstr(win, "--- cmd ----------------");
 	wmove(win, line++, 1);
-	waddstr(win, " F4, ^O - file options");
+	waddstr(win, " F4, ^F - file options");
 	wmove(win, line++, 1);
-	waddstr(win, " F5, ^K - dir options");
+	waddstr(win, " F5, ^D - dir options");
 	wmove(win, line++, 1);
 	waddstr(win, " F6, ^E - extra options");
 	wmove(win, line++, 1);
-	waddstr(win, " F7, ^F - get help");
+	waddstr(win, " F7, ^I - get help");
 	wmove(win, line++, 1);
 	waddstr(win, " F8, ^X - exit");
 

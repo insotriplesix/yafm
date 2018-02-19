@@ -4,6 +4,8 @@
 void
 finalize(void)
 {
+	disable_raw_mode();
+
 	for (int i = 0; i < NWINDOWS; ++i) {
 		list_mem_free(&content[i].files);
 		delwin(win[i]);
@@ -37,6 +39,7 @@ initialize(void)
 	}
 
 	load_config();
+	enable_raw_mode();
 
 	mvwchgat(win[ACTIVE_W], DEFPOS_Y, DEFPOS_X, COLS / 2 - 2,
 		A_NORMAL, CURSOR_C, NULL);
