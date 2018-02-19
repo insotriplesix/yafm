@@ -2,10 +2,8 @@
 #include "init.h"
 #include "readkey.h"
 
-// TODO 0: disable control keys
-// TODO 1: file options
-// TODO 2: dir options
-// TODO 3: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
+// TODO 1: deal w/ long names
+// TODO 2: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
 
 int
 main(void)

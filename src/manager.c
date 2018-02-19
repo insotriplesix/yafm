@@ -1,16 +1,6 @@
 #include "init.h"
 #include "gui.h"
 #include "manager.h"
-/*
-inline void __attribute__ ((always_inline))
-dim_cursor(void)
-{
-	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
-		content[ACTIVE_W].x_pos, COLS / 2 - 2,
-		A_DIM | A_REVERSE, CURSOR_C, NULL);
-}
-*/
-/* Set default attributes to the eol */
 
 void
 enable_raw_mode(void)
@@ -33,6 +23,15 @@ disable_raw_mode(void)
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &term_attr);
 }
 
+void
+dim_cursor(void)
+{
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
+		content[ACTIVE_W].x_pos, COLS / 2 - 2,
+		A_DIM | A_REVERSE, CURSOR_C, NULL);
+}
+
+/* Set default attributes to the eol */
 int
 set_default_attr(void)
 {
@@ -41,7 +40,7 @@ set_default_attr(void)
 		content[ACTIVE_W].y_pos + content[ACTIVE_W].y_off);
 
 	if (data == NULL)
-		return OK;		// it's not OK but just skip that
+		return OK; // it's not OK but just skip that
 
 	switch (data[0]) {
 	case '/':
@@ -273,6 +272,13 @@ show_files(enum win_t active)
 int
 perform_action(char *action)
 {
+	if (strcmp(action, "paste_file") == 0)
+		return paste_file();
+	else if (strcmp(action, "create_file") == 0)
+		return create_file_popup();
+	else if (strcmp(action, "make_dir") == 0)
+		return make_dir_popup();
+
 	int rc = OK, status;
 	char *name = list_find_data(&content[ACTIVE_W].files,
 		content[ACTIVE_W].y_pos);
@@ -284,8 +290,12 @@ perform_action(char *action)
 
 	switch (name[0]) {
 		case '/':
-			set_default_attr();
-			rc = change_dir_to(name);
+			if (strcmp(action, "remove_dir") == 0) {
+				rc = remove_dir(name);
+			} else {
+				set_default_attr();
+				rc = change_dir_to(name);
+			}
 			break;
 		case '*':
 			if (fork() == 0) {
@@ -299,7 +309,7 @@ perform_action(char *action)
 		case '~':
 			break;
 		default:
-			if (strcmp(action, "edit") == 0) {
+			if (strcmp(action, "edit_file") == 0) {
 				if (fork() == 0) {
 					rc = edit_file(name);
 				} else {
@@ -307,11 +317,9 @@ perform_action(char *action)
 					finalize();
 					restore_windows();
 				}
-			} else if (strcmp(action, "copy") == 0) {
+			} else if (strcmp(action, "copy_file") == 0) {
 				copy_file(name);
-			} else if (strcmp(action, "paste") == 0) {
-				rc = paste_file();
-			} else if (strcmp(action, "remove") == 0) {
+			} else if (strcmp(action, "remove_file") == 0) {
 				rc = remove_file(name);
 			}
 			break;
@@ -341,39 +349,140 @@ change_dir_to(char *name)
 
 	return OK;
 }
+
+int
+make_dir(char *name)
+{
+	int rc = OK;
+
+	rc = mkdir(name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if (rc == ERR) return rc;
+
+	for (int i = 0; i < NWINDOWS; ++i)
+		repaint_window(i);
+
+	if (display_content(LEFT_W) | display_content(RITE_W))
+		return ERR;
+
+	return rc;
+}
+
+int
+remove_dir(char *name)
+{
+	// TMP STUFF
+	char cmd[FILENAME_MAX];
+
+	sprintf(cmd, "rm -rf %s", ++name);
+	system(cmd);
+
+	for (int i = 0; i < NWINDOWS; ++i)
+		repaint_window(i);
+
+	if (display_content(LEFT_W) | display_content(RITE_W))
+		return ERR;
+
+	return OK;
 /*
-inline void __attribute__ ((always_inline))
+	int rc = OK;
+	size_t path_len;
+	char *full_path;
+	struct stat stat_path, stat_entry;
+	struct dirent *entry;
+
+	DIR *dir;
+
+	stat(name, &stat_path);
+
+	if (S_ISDIR(stat_path.st_mode) == 0) {
+		fprintf(stderr, "%s isn`t a directory.\n", name);
+		return ERR;
+	}
+
+	if ((dir = opendir(name)) == NULL) {
+		fprintf(stderr, "Can`t open %s.\n", name);
+		return ERR;
+	}
+
+	path_len = strlen(name);
+
+	while ((entry = readdir(dir)) != NULL) {
+		// skip "." and ".." entries
+		if (!strcmp(entry->d_name, ".") ||
+			!strcmp(entry->d_name, ".."))
+			continue;
+
+		full_path = calloc(path_len + strlen(entry->d_name) + 1,
+			sizeof(char));
+
+		strcpy(full_path, name);
+		strcat(full_path, "/");
+		strcat(full_path, entry->d_name);
+		stat(full_path, &stat_entry);
+
+		// recursively remove a nested directory
+		if (S_ISDIR(stat_entry.st_mode) != 0) {
+			rc = remove_dir(full_path);
+			if (rc == ERR) return rc;
+			continue;
+		}
+
+		// remove a file object
+		rc = unlink(full_path);
+		if (rc == ERR) return rc;
+	}
+
+	rc = rmdir(name);
+	if (rc == ERR) return rc;
+
+	rc = closedir(dir);
+	if (rc == ERR) return rc;
+
+	return rc;
+*/
+}
+
+void
 copy_file(char *name)
 {
 	sprintf(copy_buffer, "%s/%s", content[ACTIVE_W].path, ++name);
 }
-*/
+
 int
 create_file(char *name)
 {
+	FILE *fp = fopen(name, "w");
+	if (fp == NULL) return OK;	// not OK though
+
+	for (int i = 0; i < NWINDOWS; ++i)
+		repaint_window(i);
+
+	if (display_content(LEFT_W) | display_content(RITE_W))
+		return ERR;
+
+	fclose(fp);
+	return OK;
+}
+
+int
+create_file_from_buf(char *name)
+{
 	int rc = OK;
 
-/*
-	if (buf == NULL) {
-		fclose(fp);
-		return rc;
-	}
-*/
-
-//	char file_path[PATH_MAX];
 	char file_name[FILENAME_MAX];
 
 	size_t len = strlen(name);
-	size_t i;
+	size_t last_slash_idx = 0;
 
-	for (i = len; i > 0; --i)
-		if (name[i] == '/') break;
+	for (size_t i = 0; i < len; ++i) {
+		if (name[i] == '/')
+			last_slash_idx = i;
+	}
 
-//	strncpy(file_path, name, len - i);
-//	file_path[len - i] = '\0';
+	size_t file_name_len = len - last_slash_idx;
 
-	strncpy(file_name, name + len, i);
-	file_name[i] = '\0';
+	strncpy(file_name, name + last_slash_idx + 1, file_name_len);
+	file_name[file_name_len] = '\0';
 
 	FILE *fin = fopen(name, "r");
 	if (fin == NULL) return rc;
@@ -390,17 +499,21 @@ create_file(char *name)
 	fclose(fin);
 	fclose(fout);
 
+	for (int i = 0; i < NWINDOWS; ++i)
+		repaint_window(i);
+
+	if (display_content(LEFT_W) | display_content(RITE_W))
+		return ERR;
+
 	return rc;
 }
 
 int
 edit_file(char *name)
 {
-	char editor_path[PATH_MAX + FILENAME_MAX];
 	char file_path[PATH_MAX + FILENAME_MAX];
-	sprintf(editor_path, EDITOR_PATH);
 	sprintf(file_path, "%s/%s", content[ACTIVE_W].path, ++name);
-	return execl(editor_path, editor_path, file_path, (char *) NULL);
+	return execl(EDITOR_PATH, EDITOR_PATH, file_path, (char *) NULL);
 }
 
 int
@@ -414,7 +527,7 @@ exec_prog(char *name)
 int
 paste_file(void)
 {
-	return create_file(copy_buffer);
+	return create_file_from_buf(copy_buffer);
 }
 
 int

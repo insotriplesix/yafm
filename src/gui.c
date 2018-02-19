@@ -208,7 +208,7 @@ get_file_opt(void)
 {
 	WINDOW *win;
 
-	int win_height = 6;
+	int win_height = 5;
 	int win_width = 13;
 	int line = 0;
 
@@ -227,15 +227,13 @@ get_file_opt(void)
 	wmove(win, line++, 1);
 	waddstr(win, "-----------");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - create");
+	waddstr(win, "^Q - create");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - edit");
+	waddstr(win, "^C - copy");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - copy");
+	waddstr(win, "^V - paste");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - move");
-	wmove(win, line++, 1);
-	waddstr(win, "^? - remove");
+	waddstr(win, "^R - remove");
 
 	prefresh(win, 0, 0,
 		offset_y, offset_x,
@@ -256,7 +254,7 @@ get_dir_opt(void)
 {
 	WINDOW *win;
 
-	int win_height = 5;
+	int win_height = 3;
 	int win_width = 12;
 	int line = 0;
 
@@ -275,13 +273,9 @@ get_dir_opt(void)
 	wmove(win, line++, 1);
 	waddstr(win, "----------");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - mkdir");
+	waddstr(win, "^W - mkdir");
 	wmove(win, line++, 1);
-	waddstr(win, "^? - copy");
-	wmove(win, line++, 1);
-	waddstr(win, "^? - move");
-	wmove(win, line++, 1);
-	waddstr(win, "^? - rmdir");
+	waddstr(win, "^K - rmdir");
 
 	prefresh(win, 0, 0,
 		offset_y, offset_x,
@@ -391,4 +385,88 @@ get_help(void)
 	delwin(win);
 
 	return OK;
+}
+
+int
+create_file_popup(void)
+{
+	WINDOW *win;
+
+	int win_height = 3;
+	int win_width = 42;
+
+	int offset_y = LINES / 2;
+	int offset_x = COLS / 2;
+
+	win = newwin(win_height, win_width,
+		offset_y - win_height / 2,
+		offset_x - win_width / 2);
+
+	if (win == NULL) {
+		perror("newwin");
+		return ERR;
+	}
+
+	wattron(win, BORDER_CLR);
+	box(win, ACS_VLINE, ACS_HLINE);
+	wattroff(win, BORDER_CLR);
+	wbkgd(win, POPUP_CLR);
+
+	echo();
+
+	mvwaddstr(win, 1, 1, " Enter file name: ");
+	wrefresh(win);
+
+	char fname[FILENAME_MAX];
+	mvwgetstr(win, 1, 19, fname);
+
+	noecho();
+
+	wclear(win);
+	wrefresh(win);
+	delwin(win);
+
+	return create_file(fname);
+}
+
+int
+make_dir_popup(void)
+{
+	WINDOW *win;
+
+	int win_height = 3;
+	int win_width = 42;
+
+	int offset_y = LINES / 2;
+	int offset_x = COLS / 2;
+
+	win = newwin(win_height, win_width,
+		offset_y - win_height / 2,
+		offset_x - win_width / 2);
+
+	if (win == NULL) {
+		perror("newwin");
+		return ERR;
+	}
+
+	wattron(win, BORDER_CLR);
+	box(win, ACS_VLINE, ACS_HLINE);
+	wattroff(win, BORDER_CLR);
+	wbkgd(win, POPUP_CLR);
+
+	echo();
+
+	mvwaddstr(win, 1, 1, " Enter dir name: ");
+	wrefresh(win);
+
+	char dname[FILENAME_MAX];
+	mvwgetstr(win, 1, 18, dname);
+
+	noecho();
+
+	wclear(win);
+	wrefresh(win);
+	delwin(win);
+
+	return make_dir(dname);
 }

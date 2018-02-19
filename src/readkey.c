@@ -52,18 +52,31 @@ readkey(void)
 		case CTRL_G:
 			rc = change_theme_ed();
 			break;
-		case CTRL_A:
-			rc = perform_action("copy");
+		case CTRL_Q:
+			rc = perform_action("create_file");
+			break;
+		case CTRL_C:
+			rc = perform_action("copy_file");
+			break;
+		case CTRL_V:
+			rc = perform_action("paste_file");
+			break;
+		case CTRL_R:
+			set_default_attr();
+			rc = perform_action("remove_file");
+			move_up();
 			break;
 		case CTRL_W:
-			rc = perform_action("paste");
+			rc = perform_action("make_dir");
 			break;
-		case CTRL_Y:
-			rc = perform_action("remove");
+		case CTRL_K:
+			set_default_attr();
+			rc = perform_action("remove_dir");
+			move_up();
 			break;
 		case KEY_ENTER:
 		case KEY_NL:
-			rc = perform_action("edit");
+			rc = perform_action("edit_file");
 			break;
 		default:
 			break;

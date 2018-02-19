@@ -18,27 +18,6 @@
 #define CONFIG_FILE "/home/saboteur/Programming/github/YAFM/.config"
 #define EDITOR_PATH "/home/saboteur/Programming/github/YATE/yate"
 
-#define KEY_BS '\b'
-#define KEY_CR '\r'
-#define KEY_HT '\t'
-#define KEY_NL '\n'
-
-#define CTRL_A 1
-#define CTRL_B 2
-#define CTRL_C 3
-#define CTRL_D 4
-#define CTRL_E 5
-#define CTRL_F 6
-#define CTRL_G 7
-#define CTRL_H 8
-#define CTRL_I 9
-#define CTRL_J 10
-#define CTRL_K 11
-#define CTRL_O 15
-#define CTRL_W 23
-#define CTRL_X 24
-#define CTRL_Y 25
-
 #define DEFPOS_Y 1
 #define DEFPOS_X 1
 #define NWINDOWS 3
@@ -64,17 +43,10 @@ struct win_cont_t {
 
 struct win_cont_t content[NWINDOWS];
 
-inline void __attribute__ ((always_inline))
-dim_cursor(void)
-{
-	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
-		content[ACTIVE_W].x_pos, COLS / 2 - 2,
-		A_DIM | A_REVERSE, 9, NULL);
-}
-
 void enable_raw_mode(void);
 void disable_raw_mode(void);
 
+void dim_cursor(void);
 int set_default_attr(void);
 
 int fcmpr(const void *a, const void *b);
@@ -87,17 +59,15 @@ int show_files(enum win_t active);
 int perform_action(char *action);
 
 int change_dir_to(char *name);
+int make_dir(char *name);
+int remove_dir(char *name);
+
+void copy_file(char *name);
 int create_file(char *name);
+int create_file_from_buf(char *name);
 int edit_file(char *name);
 int exec_prog(char *name);
 int paste_file(void);
 int remove_file(char *name);
-
-inline void __attribute__ ((always_inline))
-copy_file(char *name)
-{
-	sprintf(copy_buffer, "%s/%s",
-		content[ACTIVE_W].path, ++name);
-}
 
 #endif

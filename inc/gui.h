@@ -35,6 +35,9 @@ int get_extra_opt(void);
 
 int get_help(void);
 
+int create_file_popup(void);
+int make_dir_popup(void);
+
 inline void __attribute__ ((always_inline))
 update_gui(void)
 {
