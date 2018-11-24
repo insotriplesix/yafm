@@ -18,8 +18,7 @@ finalize(void)
 void
 initialize(void)
 {
-	if (init_ncurses() | init_colors() | init_windows() | init_content() |
-		init_gui()) {
+	if (init_ncurses() | init_colors() | init_windows() | init_content() | init_gui()) {
 		endwin();
 		fprintf(stderr, "Initializing error.\n");
 		exit(EXIT_FAILURE);
@@ -137,21 +136,12 @@ load_config(void)
 	if (fp == NULL)	return ERR;
 
 	char line[LINE_MAX];
-	char theme = 0;
+	char theme = '0';
 
 	while ((fgets(line, LINE_MAX, fp)) != NULL) {
-		if (strncmp(line, "theme", 5) == 0) {
-			char **str = split_s(line, ' ');
-
-			if (str != NULL) {
-				theme = str[1][0];
-				change_theme(theme);
-			}
-
-			for (int i = 0; i < 2; ++i)
-				free(str[i]);
-			free(str);
-		}
+		if ((strncmp(line, "theme", 5) == 0) && (strlen(line) >= 7))
+			theme = line[6];
+		change_theme(theme);
 	}
 
 	fclose(fp);

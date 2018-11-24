@@ -93,47 +93,6 @@ fcmpr(const void *a, const void *b)
 		return strcmp(f1, f2);
 }
 
-char **
-split_s(char *str, const char delim)
-{
-	char **result = NULL;
-	char *tmp = str;
-	char *last_delim = NULL;
-	size_t count = 0;
-
-	char d[2] = { delim, '\0' };
-
-	while (*tmp) {
-		if (delim == *tmp) {
-			count++;
-			last_delim = tmp;
-		}
-
-		tmp++;
-	}
-
-	count += last_delim < (str + strlen(str) - 1);
-	count++;
-
-	result = malloc(sizeof(char *) * count);
-
-	if (result) {
-		size_t idx = 0;
-		char *tok = strtok(str, d);
-
-		while (tok) {
-			assert(idx < count);
-			*(result + idx++) = strdup(tok);
-			tok = strtok(0, d);
-		}
-
-		assert (idx == count - 1);
-		*(result + idx) = 0;
-	}
-
-	return result;
-}
-
 int
 display_content(enum win_t active)
 {
@@ -395,63 +354,6 @@ remove_dir(char *name)
 		return ERR;
 
 	return OK;
-/*
-	int rc = OK;
-	size_t path_len;
-	char *full_path;
-	struct stat stat_path, stat_entry;
-	struct dirent *entry;
-
-	DIR *dir;
-
-	stat(name, &stat_path);
-
-	if (S_ISDIR(stat_path.st_mode) == 0) {
-		fprintf(stderr, "%s isn`t a directory.\n", name);
-		return ERR;
-	}
-
-	if ((dir = opendir(name)) == NULL) {
-		fprintf(stderr, "Can`t open %s.\n", name);
-		return ERR;
-	}
-
-	path_len = strlen(name);
-
-	while ((entry = readdir(dir)) != NULL) {
-		// skip "." and ".." entries
-		if (!strcmp(entry->d_name, ".") ||
-			!strcmp(entry->d_name, ".."))
-			continue;
-
-		full_path = calloc(path_len + strlen(entry->d_name) + 1,
-			sizeof(char));
-
-		strcpy(full_path, name);
-		strcat(full_path, "/");
-		strcat(full_path, entry->d_name);
-		stat(full_path, &stat_entry);
-
-		// recursively remove a nested directory
-		if (S_ISDIR(stat_entry.st_mode) != 0) {
-			rc = remove_dir(full_path);
-			if (rc == ERR) return rc;
-			continue;
-		}
-
-		// remove a file object
-		rc = unlink(full_path);
-		if (rc == ERR) return rc;
-	}
-
-	rc = rmdir(name);
-	if (rc == ERR) return rc;
-
-	rc = closedir(dir);
-	if (rc == ERR) return rc;
-
-	return rc;
-*/
 }
 
 void

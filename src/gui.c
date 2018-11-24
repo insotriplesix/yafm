@@ -79,16 +79,6 @@ change_theme(char theme)
 	current_theme = theme;
 
 	switch (theme) {
-		case '0': // default
-			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
-			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;
-			fg_popup = COLOR_YELLOW, bg_popup = COLOR_BLACK;
-			fg_dir = COLOR_YELLOW, bg_dir = COLOR_BLUE;
-			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLUE;
-			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLUE;
-			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLUE;
-			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
-			break;
 		case '1': // leet
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_GREEN;
 			fg_field = COLOR_GREEN, bg_field = COLOR_BLACK;
@@ -119,8 +109,17 @@ change_theme(char theme)
 			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLACK;
 			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
 			break;
+		case '0': // default
 		default:
-			return OK;
+			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
+			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;
+			fg_popup = COLOR_YELLOW, bg_popup = COLOR_BLACK;
+			fg_dir = COLOR_YELLOW, bg_dir = COLOR_BLUE;
+			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLUE;
+			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLUE;
+			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLUE;
+			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
+			break;
 	}
 
 	init_pair(1, fg_menu, bg_menu);

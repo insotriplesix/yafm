@@ -2,9 +2,6 @@
 #include "init.h"
 #include "readkey.h"
 
-// TODO 1: deal w/ long names
-// TODO 2: valgrind -v --leak-check=full --show-leak-kinds=all ./yafm
-
 int
 main(void)
 {

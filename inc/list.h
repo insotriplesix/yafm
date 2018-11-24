@@ -26,7 +26,7 @@ node_mem_alloc(size_t _sz)
 	if (_new)
 		_new->next = NULL;
 
-	_new->data = calloc(_sz, sizeof(char));
+	_new->data = calloc(_sz + 1, sizeof(char));
 	_new->size = _sz;
 
 	return _new;
@@ -43,13 +43,13 @@ list_mem_zero(struct list_t *_list)
 inline void __attribute__ ((always_inline))
 list_mem_free(struct list_t *_list)
 {
-	struct node_t *_del = _list->head;
+	struct node_t *_nxt, *_del = _list->head;
 
 	while (_del) {
-		_list->head = _del->next;
+		_nxt = _del->next;
 		free(_del->data);
 		free(_del);
-		_del = _list->head;
+		_del = _nxt;
 	}
 
 	list_mem_zero(_list);
@@ -70,8 +70,7 @@ list_add_data(struct list_t *_list, int _idx,
 	if (!_add) return;
 
 	_add->index = _idx;
-//	_add->size = _sz;
-	memcpy(_add->data, _data, sizeof(char) * _sz);
+	memcpy(_add->data, _data, sizeof(char) * _sz + 1);
 	_add->next = NULL;
 
 	if (!_list->head) {

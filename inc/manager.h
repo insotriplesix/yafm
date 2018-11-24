@@ -27,7 +27,7 @@ WINDOW *win[NWINDOWS];
 enum win_t { MENU_W, LEFT_W, RITE_W };
 int ACTIVE_W;
 
-char current_theme;
+int current_theme;
 char copy_buffer[PATH_MAX + FILENAME_MAX];
 
 struct termios term_attr;
@@ -50,7 +50,6 @@ void dim_cursor(void);
 int set_default_attr(void);
 
 int fcmpr(const void *a, const void *b);
-char **split_s(char *str, const char delim);
 
 int display_content(enum win_t active);
 int grab_files(enum win_t active);
