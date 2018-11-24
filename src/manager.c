@@ -213,6 +213,7 @@ show_files(enum win_t active)
 		head = head->next;
 
 	int line = DEFPOS_Y;
+	long len, halfw = COLS / 2;
 
 	for (int i = 0; i < LINES - 5 && head; ++i) {
 		int color;
@@ -234,7 +235,21 @@ show_files(enum win_t active)
 		}
 
 		wattron(win[active], COLOR_PAIR(color));
-		mvwprintw(win[active], line++, 1, "%s", data);
+
+		char name[FILENAME_MAX];
+		sprintf(name, "%s", data);
+
+		len = strlen(name);
+
+		// Don`t show full name if it is out of borders
+		if ((len / (float)halfw * 100.f) > 85) {
+			name[halfw - 8] = '.';
+			name[halfw - 7] = '.';
+			name[halfw - 6] = '.';
+			name[halfw - 5] = '\0';
+		}
+
+		mvwprintw(win[active], line++, 1, "%s", name);
 		wattroff(win[active], COLOR_PAIR(color));
 		head = head->next;
 	}
@@ -243,11 +258,11 @@ show_files(enum win_t active)
 	wattron(win[active], BORDER_CLR);
 	mvwhline(win[active], 0, 3, ACS_HLINE, COLS / 2 - 6);
 
-	long len = strlen(content[active].path);
-	long halfw = COLS / 2;
+	len = strlen(content[active].path);
+
 	char path[PATH_MAX];
 
-	// Don`t show full path if its out of borders
+	// Don`t show full path if it is out of borders
 	if ((len / (float)halfw * 100.f) > 85) {
 		strncpy(path, content[active].path,
 			sizeof(char) * (halfw - 11));
@@ -255,11 +270,8 @@ show_files(enum win_t active)
 		path[halfw - 10] = '.';
 		path[halfw - 9] = '.';
 		path[halfw - 8] = '\0';
-	} else {
-		strncpy(path, content[active].path,
-			sizeof(char) * len);
-		path[len] = '\0';
-	}
+	} else
+		sprintf(path, "%s", content[active].path);
 
 	mvwprintw(win[active], 0, 3, " %s ", path);
 	wattroff(win[active], BORDER_CLR);
