@@ -27,7 +27,7 @@ WINDOW *win[NWINDOWS];
 enum win_t { MENU_W, LEFT_W, RITE_W };
 int ACTIVE_W;
 
-int current_theme;
+char current_theme;
 char copy_buffer[PATH_MAX + FILENAME_MAX];
 
 struct termios term_attr;
