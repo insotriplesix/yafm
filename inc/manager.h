@@ -15,12 +15,12 @@
 
 #include "list.h"
 
-#define CONFIG_FILE "/home/saboteur/Programming/github/YAFM/.config"
-#define EDITOR_PATH "/home/saboteur/Programming/github/YATE/yate"
-
 #define DEFPOS_Y 1
 #define DEFPOS_X 1
 #define NWINDOWS 3
+
+char CONFIG_PATH[PATH_MAX + FILENAME_MAX + 1];
+char EDITOR_PATH[PATH_MAX + FILENAME_MAX + 1];
 
 WINDOW *win[NWINDOWS];
 
@@ -28,7 +28,7 @@ enum win_t { MENU_W, LEFT_W, RITE_W };
 int ACTIVE_W;
 
 char current_theme;
-char copy_buffer[PATH_MAX + FILENAME_MAX];
+char copy_buffer[PATH_MAX + FILENAME_MAX + 1];
 
 struct termios term_attr;
 
@@ -50,6 +50,7 @@ void dim_cursor(void);
 int set_default_attr(void);
 
 int fcmpr(const void *a, const void *b);
+int get_editor_path(void);
 
 int display_content(enum win_t active);
 int grab_files(enum win_t active);

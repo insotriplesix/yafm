@@ -37,7 +37,12 @@ initialize(void)
 		exit(EXIT_FAILURE);
 	}
 
-	load_config();
+	if (get_config() | load_config()) {
+		endwin();
+		fprintf(stderr, "Something wrong with the config file.\n");
+		exit(EXIT_FAILURE);
+	}
+
 	enable_raw_mode();
 
 	mvwchgat(win[ACTIVE_W], DEFPOS_Y, DEFPOS_X, COLS / 2 - 2,
@@ -130,9 +135,24 @@ init_windows(void)
 }
 
 int
+get_config(void)
+{
+	char cwd[PATH_MAX];
+
+	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		perror("getcwd");
+		return ERR;
+	}
+
+	snprintf(CONFIG_PATH, sizeof(CONFIG_PATH), "%s/%s", cwd, ".config");
+
+	return OK;
+}
+
+int
 load_config(void)
 {
-	FILE *fp = fopen(CONFIG_FILE, "r");
+	FILE *fp = fopen(CONFIG_PATH, "r");
 	if (fp == NULL)	return ERR;
 
 	char line[LINE_MAX];
@@ -152,7 +172,7 @@ load_config(void)
 int
 save_config(void)
 {
-	FILE *fp = fopen(CONFIG_FILE, "w");
+	FILE *fp = fopen(CONFIG_PATH, "w");
 	if (fp == NULL)	return ERR;
 
 	fprintf(fp, "theme %c\n", current_theme);

@@ -94,6 +94,22 @@ fcmpr(const void *a, const void *b)
 }
 
 int
+get_editor_path(void)
+{
+	char cwd[PATH_MAX];
+
+	if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		perror("getcwd");
+		return ERR;
+	}
+
+	snprintf(EDITOR_PATH, sizeof(EDITOR_PATH), "%s/%s", cwd,
+		"editor/yate");
+
+	return OK;
+}
+
+int
 display_content(enum win_t active)
 {
 	return grab_files(active) & show_files(active);
@@ -425,7 +441,7 @@ create_file_from_buf(char *name)
 int
 edit_file(char *name)
 {
-	char file_path[PATH_MAX + FILENAME_MAX];
+	char file_path[PATH_MAX + FILENAME_MAX + 1];
 	sprintf(file_path, "%s/%s", content[ACTIVE_W].path, ++name);
 	return execl(EDITOR_PATH, EDITOR_PATH, file_path, (char *) NULL);
 }
@@ -433,7 +449,7 @@ edit_file(char *name)
 int
 exec_prog(char *name)
 {
-	char prog[PATH_MAX + FILENAME_MAX];
+	char prog[PATH_MAX + FILENAME_MAX + 1];
 	sprintf(prog, "%s/%s", content[ACTIVE_W].path, ++name);
 	return execl(prog, prog, (char *) NULL);
 }
@@ -448,7 +464,7 @@ int
 remove_file(char *name)
 {
 	int rc = OK;
-	char file_path[PATH_MAX + FILENAME_MAX];
+	char file_path[PATH_MAX + FILENAME_MAX + 1];
 
 	sprintf(file_path, "%s/%s", content[ACTIVE_W].path, ++name);
 
