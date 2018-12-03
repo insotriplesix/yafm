@@ -3,9 +3,9 @@
 
 #include "manager.h"
 
-#define restore_windows() initialize()
+#define restore_windows() (initialize(0))
 
-void initialize(void);
+void initialize(int is_first);
 void finalize(void);
 
 int init_colors(void);

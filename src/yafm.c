@@ -7,7 +7,7 @@ main(void)
 {
 	int rc = OK;
 
-	initialize();
+	initialize(1);
 
 	while (0x1) {
 		update_gui();

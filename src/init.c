@@ -16,7 +16,7 @@ finalize(void)
 }
 
 void
-initialize(void)
+initialize(int is_first)
 {
 	if (init_ncurses() | init_colors() | init_windows() | init_content() | init_gui()) {
 		endwin();
@@ -37,10 +37,14 @@ initialize(void)
 		exit(EXIT_FAILURE);
 	}
 
-	if (get_config() | load_config()) {
-		endwin();
-		fprintf(stderr, "Something wrong with the config file.\n");
-		exit(EXIT_FAILURE);
+	if (is_first) {
+		if (get_config() | load_config()) {
+			endwin();
+			printf("%s\n", CONFIG_PATH);
+			printf("%s\n", EDITOR_PATH);
+			fprintf(stderr, "Something wrong with the config file.\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	enable_raw_mode();
@@ -145,6 +149,7 @@ get_config(void)
 	}
 
 	snprintf(CONFIG_PATH, sizeof(CONFIG_PATH), "%s/%s", cwd, ".config");
+	snprintf(EDITOR_PATH, sizeof(CONFIG_PATH), "%s/editor/yate", cwd);
 
 	return OK;
 }
