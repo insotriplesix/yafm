@@ -5,17 +5,14 @@
 int
 main(void)
 {
-	int rc = OK;
-
 	initialize(1);
 
 	while (0x1) {
 		update_gui();
-		rc = readkey();
-		if (rc == ERR) break;
+		readkey();
 	}
 
-	finalize();
+	finalize(1);
 
-	return rc;
+	return 0;
 }

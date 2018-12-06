@@ -1,10 +1,104 @@
+/********************************************************************
+ * PROGRAM: yafm
+ * FILE: gui.c
+ * PURPOSE: manager gui
+ * AUTHOR: 5aboteur <5aboteur@protonmail.com>
+ *******************************************************************/
+
 #include "gui.h"
+
+/*
+ * Function: update_gui
+ * --------------------
+ * Description:
+ *  Updates program gui.
+ */
+
+void
+update_gui(void)
+{
+	for (int i = 0; i < NWINDOWS; ++i) {
+		touchwin(win[i]);
+		wnoutrefresh(win[i]);
+	}
+
+	mvwchgat(win[ACTIVE_W], content[ACTIVE_W].y_pos,
+		content[ACTIVE_W].x_pos, LIMIT_X, A_NORMAL,
+		CURSOR_C, NULL);
+
+	doupdate();
+}
+
+/*
+ * Function: draw_window
+ * ---------------------
+ * Description:
+ *  Draws a window.
+ *
+ * Arguments:
+ *  'wtype' - specifies the window to draw (e.g. menu).
+ */
+
+void
+draw_window(enum win_t wtype)
+{
+	wclear(win[wtype]);
+
+	wattron(win[wtype], BORDER_CLR);
+	box(win[wtype], ACS_VLINE, ACS_HLINE);
+	wattroff(win[wtype], BORDER_CLR);
+
+	switch (wtype) {
+		case MENU_W: draw_menu(wtype); break;
+		case LEFT_W: draw_left(wtype); break;
+		case RITE_W: draw_rite(wtype); break;
+		default: break;
+	}
+
+	wrefresh(win[wtype]);
+}
+
+/*
+ * Function: draw_left
+ * -------------------
+ * Description:
+ *  Draws the left part of the manager.
+ *
+ * Arguments:
+ *  'wtype' - type of a window (LEFT_W in this case).
+ */
 
 void
 draw_left(enum win_t wtype)
 {
 	wbkgd(win[wtype], EDIT_CLR);
 }
+
+/*
+ * Function: draw_rite
+ * -------------------
+ * Description:
+ *  Draws the right part of the manager.
+ *
+ * Arguments:
+ *  'wtype' - type of a window (RITE_W in this case).
+ */
+
+void
+draw_rite(enum win_t wtype)
+{
+	wbkgd(win[wtype], EDIT_CLR);
+}
+
+/*
+ * Function: draw_menu
+ * -------------------
+ * Description:
+ *  Draws the menu window.
+ *
+ * Arguments:
+ *  'wtype' - type of a window (MENU_W in this case).
+ */
 
 void
 draw_menu(enum win_t wtype)
@@ -27,58 +121,39 @@ draw_menu(enum win_t wtype)
 	wattroff(win[wtype], MENU_CLR);
 }
 
-void
-draw_rite(enum win_t wtype)
-{
-	wbkgd(win[wtype], EDIT_CLR);
-}
+/*
+ * Function: change_theme
+ * ----------------------
+ * Description:
+ *  Changes current theme to another one that was received from the
+ *  config file or selected by user.
+ *
+ * Arguments:
+ *  'popup' - the flag that indicates wheter a popup window will be
+ *            displayed or not.
+ */
 
 void
-draw_window(enum win_t wtype)
-{
-	wclear(win[wtype]);
-
-	wattron(win[wtype], BORDER_CLR);
-	box(win[wtype], ACS_VLINE, ACS_HLINE);
-	wattroff(win[wtype], BORDER_CLR);
-
-	switch (wtype) {
-		case MENU_W:
-			draw_menu(wtype);
-			break;
-		case LEFT_W:
-			draw_left(wtype);
-			break;
-		case RITE_W:
-			draw_rite(wtype);
-			break;
-		default:
-			break;
-	}
-
-	wrefresh(win[wtype]);
-}
-
-int
-change_theme_ed(void)
-{
-	char theme = change_theme_popup();
-	if (theme == ERR) return ERR;
-
-	return change_theme(theme);
-}
-
-int
-change_theme(char theme)
+change_theme(int popup)
 {
 	int fg_field, bg_field, fg_menu, bg_menu,
 		fg_popup, bg_popup, fg_dir, bg_dir,
 		fg_reg, bg_reg, fg_exec, bg_exec,
 		fg_oth, bg_oth, fg_curs, bg_curs;
 
-	current_theme = theme;
+	if (popup) current_theme = (char)change_theme_popup();
 
-	switch (theme) {
+	switch (current_theme) {
+		case '0': // default
+			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
+			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;
+			fg_popup = COLOR_YELLOW, bg_popup = COLOR_BLACK;
+			fg_dir = COLOR_YELLOW, bg_dir = COLOR_BLUE;
+			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLUE;
+			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLUE;
+			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLUE;
+			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
+			break;
 		case '1': // leet
 			fg_menu = COLOR_BLACK, bg_menu = COLOR_GREEN;
 			fg_field = COLOR_GREEN, bg_field = COLOR_BLACK;
@@ -109,17 +184,9 @@ change_theme(char theme)
 			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLACK;
 			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
 			break;
-		case '0': // default
 		default:
-			fg_menu = COLOR_BLACK, bg_menu = COLOR_YELLOW;
-			fg_field = COLOR_WHITE, bg_field = COLOR_BLUE;
-			fg_popup = COLOR_YELLOW, bg_popup = COLOR_BLACK;
-			fg_dir = COLOR_YELLOW, bg_dir = COLOR_BLUE;
-			fg_reg = COLOR_WHITE, bg_reg = COLOR_BLUE;
-			fg_exec = COLOR_GREEN, bg_exec = COLOR_BLUE;
-			fg_oth = COLOR_MAGENTA, bg_oth = COLOR_BLUE;
-			fg_curs = COLOR_WHITE, bg_curs = COLOR_RED;
-			break;
+			//status
+			return;
 	}
 
 	init_pair(1, fg_menu, bg_menu);
@@ -151,8 +218,23 @@ change_theme(char theme)
 	wattrset(win[LEFT_W], CURSOR_CLR);
 	wattrset(win[RITE_W], CURSOR_CLR);
 
-	return OK;
+	if (popup) {
+		//status
+	}
 }
+
+/*
+ * Function: change_theme_popup
+ * ----------------------------
+ * Description:
+ *  Draws 'themes' popup window.
+ *
+ * Asserts:
+ *  'newpad' won`t return NULL.
+ *
+ * Returns:
+ *  'choice' value that contains a theme number.
+ */
 
 int
 change_theme_popup(void)
@@ -162,16 +244,12 @@ change_theme_popup(void)
 	int win_height = 6;
 	int win_width = 13;
 	int line = 1;
-
 	int offset_y = LINES / 2;
 	int offset_x = COLS / 2;
 
 	win = newpad(win_height, win_width);
 
-	if (win == NULL) {
-		perror("newpad");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wattron(win, BORDER_CLR);
 	box(win, ACS_VLINE, ACS_HLINE);
@@ -195,6 +273,7 @@ change_theme_popup(void)
 
 	int choice = wgetch(win);
 
+	flushinp();
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
@@ -202,7 +281,17 @@ change_theme_popup(void)
 	return choice;
 }
 
-int
+/*
+ * Function: get_file_opt
+ * ----------------------
+ * Description:
+ *  Draws 'file' popup window.
+ *
+ * Asserts:
+ *  'newpad' won`t return NULL.
+ */
+
+void
 get_file_opt(void)
 {
 	WINDOW *win;
@@ -210,16 +299,12 @@ get_file_opt(void)
 	int win_height = 5;
 	int win_width = 13;
 	int line = 0;
-
 	int offset_y = 2;
 	int offset_x = 2;
 
 	win = newpad(win_height, win_width);
 
-	if (win == NULL) {
-		perror("newpad");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wbkgd(win, MENU_CLR);
 
@@ -241,14 +326,23 @@ get_file_opt(void)
 
 	wgetch(win);
 
+	flushinp();
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return OK;
 }
 
-int
+/*
+ * Function: get_dir_opt
+ * ---------------------
+ * Description:
+ *  Draws 'dir' popup window.
+ *
+ * Asserts:
+ *  'newpad' won`t return NULL.
+ */
+
+void
 get_dir_opt(void)
 {
 	WINDOW *win;
@@ -256,16 +350,12 @@ get_dir_opt(void)
 	int win_height = 3;
 	int win_width = 12;
 	int line = 0;
-
 	int offset_y = 2;
 	int offset_x = 17;
 
 	win = newpad(win_height, win_width);
 
-	if (win == NULL) {
-		perror("newpad");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wbkgd(win, MENU_CLR);
 
@@ -283,14 +373,23 @@ get_dir_opt(void)
 
 	wgetch(win);
 
+	flushinp();
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return OK;
 }
 
-int
+/*
+ * Function: get_extra_opt
+ * -----------------------
+ * Description:
+ *  Draws 'extra' popup window.
+ *
+ * Asserts:
+ *  'newpad' won`t return NULL.
+ */
+
+void
 get_extra_opt(void)
 {
 	WINDOW *win;
@@ -298,16 +397,12 @@ get_extra_opt(void)
 	int win_height = 2;
 	int win_width = 14;
 	int line = 0;
-
 	int offset_y = 2;
 	int offset_x = 31;
 
 	win = newpad(win_height, win_width);
 
-	if (win == NULL) {
-		perror("newpad");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wbkgd(win, MENU_CLR);
 
@@ -323,53 +418,71 @@ get_extra_opt(void)
 
 	wgetch(win);
 
+	flushinp();
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return OK;
 }
 
-int
+/*
+ * Function: get_help
+ * ------------------
+ * Description:
+ *  Draws 'help' popup window.
+ *
+ * Asserts:
+ *  'newpad' won`t return NULL.
+ */
+
+void
 get_help(void)
 {
 	WINDOW *win;
 
-	int win_height = 10;
-	int win_width = 26;
+	int win_height = (LINES >= 10) ? 10 : 7;
+	int win_width = (LINES >= 10) ? 26 : 42;
 	int line = 1;
-
 	int offset_y = LINES / 2;
 	int offset_x = COLS / 2;
 
 	win = newpad(win_height, win_width);
 
-	if (win == NULL) {
-		perror("newpad");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wattron(win, BORDER_CLR);
 	box(win, ACS_VLINE, ACS_HLINE);
 	wattroff(win, BORDER_CLR);
 	wbkgd(win, POPUP_CLR);
 
-	wmove(win, line++, win_width / 3);
-	waddstr(win, "YAFM v1.1b");
-	wmove(win, line++, 1);
-	waddstr(win, "");
-	wmove(win, line++, 1);
-	waddstr(win, "--- cmd ----------------");
-	wmove(win, line++, 1);
-	waddstr(win, " F4, ^F - file options");
-	wmove(win, line++, 1);
-	waddstr(win, " F5, ^D - dir options");
-	wmove(win, line++, 1);
-	waddstr(win, " F6, ^E - extra options");
-	wmove(win, line++, 1);
-	waddstr(win, " F7, ^I - get help");
-	wmove(win, line++, 1);
-	waddstr(win, " F8, ^X - exit");
+	if (LINES >= 10) {
+		wmove(win, line++, win_width / 3);
+		waddstr(win, "YAFM v1.1f");
+		wmove(win, line++, 1);
+		waddstr(win, "");
+		wmove(win, line++, 1);
+		waddstr(win, "--- cmd ----------------");
+		wmove(win, line++, 1);
+		waddstr(win, " F4, ^F - file options");
+		wmove(win, line++, 1);
+		waddstr(win, " F5, ^D - dir options");
+		wmove(win, line++, 1);
+		waddstr(win, " F6, ^E - extra options");
+		wmove(win, line++, 1);
+		waddstr(win, " F7, ^I - get help");
+		wmove(win, line++, 1);
+		waddstr(win, " F8, ^X - exit");
+	} else {
+		wmove(win, line++, 1);
+		waddstr(win, " F4, ^F - file | ^Q - creat, ^C - copy");
+		wmove(win, line++, 1);
+		waddstr(win, "               | ^V - paste, ^R - remov");
+		wmove(win, line++, 1);
+		waddstr(win, " F5, ^D - dir  | ^W - mkdir, ^K - rmdir");
+		wmove(win, line++, 1);
+		waddstr(win, " F6, ^E - ext  | ^G - themez");
+		wmove(win, line++, 1);
+		waddstr(win, " F7, ^I - help | F8, ^X - exit");
+	}
 
 	prefresh(win, 0, 0,
 		offset_y - win_height / 2,
@@ -379,21 +492,33 @@ get_help(void)
 
 	wgetch(win);
 
+	flushinp();
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return OK;
 }
 
-int
-create_file_popup(void)
+/*
+ * Function: create_file_popup
+ * ---------------------------
+ * Description:
+ *  Draws popup window which is waits for the input.
+ *
+ * Arguments:
+ *  'fname' - an array that stores the name of a file
+ *            to be created.
+ *
+ * Asserts:
+ *  'newwin' won`t return NULL.
+ */
+
+void
+create_file_popup(char *fname)
 {
 	WINDOW *win;
 
 	int win_height = 3;
 	int win_width = 42;
-
 	int offset_y = LINES / 2;
 	int offset_x = COLS / 2;
 
@@ -401,10 +526,7 @@ create_file_popup(void)
 		offset_y - win_height / 2,
 		offset_x - win_width / 2);
 
-	if (win == NULL) {
-		perror("newwin");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wattron(win, BORDER_CLR);
 	box(win, ACS_VLINE, ACS_HLINE);
@@ -416,20 +538,32 @@ create_file_popup(void)
 	mvwaddstr(win, 1, 1, " Enter file name: ");
 	wrefresh(win);
 
-	char fname[FILENAME_MAX];
 	mvwgetstr(win, 1, 19, fname);
 
+	flushinp();
 	noecho();
 
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return create_file(fname);
 }
 
-int
-make_dir_popup(void)
+/*
+ * Function: make_dir_popup
+ * ------------------------
+ * Description:
+ *  Draws popup window which is waits for the input.
+ *
+ * Arguments:
+ *  'dname' - an array that stores the name of a dir
+ *            to be created.
+ *
+ * Asserts:
+ *  'newwin' won`t return NULL.
+ */
+
+void
+make_dir_popup(char *dname)
 {
 	WINDOW *win;
 
@@ -443,10 +577,7 @@ make_dir_popup(void)
 		offset_y - win_height / 2,
 		offset_x - win_width / 2);
 
-	if (win == NULL) {
-		perror("newwin");
-		return ERR;
-	}
+	assert(win != NULL);
 
 	wattron(win, BORDER_CLR);
 	box(win, ACS_VLINE, ACS_HLINE);
@@ -458,14 +589,12 @@ make_dir_popup(void)
 	mvwaddstr(win, 1, 1, " Enter dir name: ");
 	wrefresh(win);
 
-	char dname[FILENAME_MAX];
 	mvwgetstr(win, 1, 18, dname);
 
+	flushinp();
 	noecho();
 
 	wclear(win);
 	wrefresh(win);
 	delwin(win);
-
-	return make_dir(dname);
 }

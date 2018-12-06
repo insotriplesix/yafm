@@ -1,3 +1,10 @@
+/********************************************************************
+ * PROGRAM: yafm
+ * FILE: readkey.h
+ * PURPOSE: user input processing
+ * AUTHOR: 5aboteur <5aboteur@protonmail.com>
+ *******************************************************************/
+
 #ifndef __READKEY_H__
 #define __READKEY_H__
 
@@ -22,6 +29,6 @@
 #define CTRL_W 23
 #define CTRL_X 24
 
-int readkey(void);
+void readkey(void);
 
 #endif

@@ -1,8 +1,80 @@
+/********************************************************************
+ * PROGRAM: yafm
+ * FILE: init.c
+ * PURPOSE: file manager initialization functions
+ * AUTHOR: 5aboteur <5aboteur@protonmail.com>
+ *******************************************************************/
+
 #include "gui.h"
 #include "init.h"
 
+/*
+ * Function: initialize
+ * --------------------
+ * Description:
+ *  Initializes the manager (run ncurses, enable raw mode, load
+ *  configuration file etc).
+ *
+ * Arguments:
+ *  'conf' - the flag that indicates do we need to take care about
+ *           the config file or not.
+ *
+ * Notes:
+ *  When we, for example, finished editing files in YAFM (via YATE) -
+ *  we need to restore windows in their previous state. So, we don`t
+ *  need to save or reload config files, because current parameters
+ *  already in our memory.
+ */
+
 void
-finalize(void)
+initialize(int conf)
+{
+	if (init_ncurses() || init_colors()) {
+		endwin();
+		fprintf(stderr, "Ncurses initializing error.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (LINES < 11 || COLS < 98) {
+		endwin();
+		fprintf(stderr, "Terminal window is too small.\n"
+			"Min: 11x98, your: %dx%d\n", LINES, COLS);
+		exit(EXIT_FAILURE);
+	}
+
+	init_windows();
+	init_gui();
+	init_content();
+
+	if (conf) {
+		get_config();
+		get_editor_path();
+		load_config();
+	}
+
+	if (display_content(LEFT_W) || display_content(RITE_W)) {
+		endwin();
+		fprintf(stderr, "Displaying error.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	enable_raw_mode();
+}
+
+/*
+ * Function: finalize
+ * ------------------
+ * Description:
+ *  Restores default terminal attributes, frees allocated memory
+ *  and saves current manager configuration into the config file.
+ *
+ * Arguments:
+ *  'conf' - the flag that indicates do we need to take care about
+ *           the config file or not.
+ */
+
+void
+finalize(int conf)
 {
 	disable_raw_mode();
 
@@ -12,46 +84,19 @@ finalize(void)
 	}
 
 	endwin();
-	save_config();
+
+	if (conf) save_config();
 }
 
-void
-initialize(int is_first)
-{
-	if (init_ncurses() | init_colors() | init_windows() | init_content() | init_gui()) {
-		endwin();
-		fprintf(stderr, "Initializing error.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if (LINES < 6 || COLS < 98) {
-		endwin();
-		fprintf(stderr, "Terminal window is too small.\n"
-			"Min: 6x98, your: %dx%d\n", LINES, COLS);
-		exit(EXIT_FAILURE);
-	}
-
-	if (display_content(LEFT_W) | display_content(RITE_W)) {
-		endwin();
-		fprintf(stderr, "Displaying error.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if (is_first) {
-		if (get_config() | load_config()) {
-			endwin();
-			printf("%s\n", CONFIG_PATH);
-			printf("%s\n", EDITOR_PATH);
-			fprintf(stderr, "Something wrong with the config file.\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	enable_raw_mode();
-
-	mvwchgat(win[ACTIVE_W], DEFPOS_Y, DEFPOS_X, COLS / 2 - 2,
-		A_NORMAL, CURSOR_C, NULL);
-}
+/*
+ * Function: init_colors
+ * ---------------------
+ * Description:
+ *  Initializes color palette.
+ *
+ * Returns:
+ *  'OK' (0 value) if initialization completed, 'ERR' otherwise.
+ */
 
 int
 init_colors(void)
@@ -77,29 +122,28 @@ init_colors(void)
 	return OK;
 }
 
-int
-init_content(void)
-{
-	for (int i = 0; i < NWINDOWS; ++i) {
-		content[i].x_pos = 1;
-		content[i].y_pos = 1;
-		content[i].count = 0;
-		content[i].y_off = 0;
-		getcwd(content[i].path, PATH_MAX);
-		list_init(&content[i].files);
-	}
+/*
+ * Function: init_gui
+ * ------------------
+ * Description:
+ *  Draws manager windows.
+ */
 
-	return OK;
-}
-
-int
+void
 init_gui(void)
 {
-	for (int i = 0; i < NWINDOWS; ++i)
-		draw_window(i);
-
-	return OK;
+	for (int i = 0; i < NWINDOWS; ++i) draw_window(i);
 }
+
+/*
+ * Function: init_ncurses
+ * ----------------------
+ * Description:
+ *  Ncurses library initialization.
+ *
+ * Returns:
+ *  'OK' (0 value) only if all 4 functions return 0, 'ERR' otherwise.
+ */
 
 int
 init_ncurses(void)
@@ -107,81 +151,34 @@ init_ncurses(void)
 	return (initscr() != NULL) & clear() & cbreak() & noecho();
 }
 
-int
+/*
+ * Function: init_windows
+ * ----------------------
+ * Description:
+ *  Allocates memory for editor windows and enables auxiliary stuff
+ *  for user input such as control and function keys.
+ *
+ * Asserts:
+ *  'newwin' won`t return NULL.
+ */
+
+void
 init_windows(void)
 {
 	win[MENU_W] = newwin(3, COLS, 0, 0);
-	if (win[MENU_W] == NULL) {
-		perror("newwin");
-		return ERR;
-	}
+	assert(win[MENU_W] != NULL);
 
 	win[LEFT_W] = newwin(LINES - 3, COLS / 2, 3, 0);
-	if (win[LEFT_W] == NULL) {
-		perror("newwin");
-		return ERR;
-	}
+	assert(win[LEFT_W] != NULL);
 
 	win[RITE_W] = newwin(LINES - 3, COLS / 2, 3, COLS / 2);
-	if (win[RITE_W] == NULL) {
-		perror("newwin");
-		return ERR;
-	}
+	assert(win[RITE_W] != NULL);
+
+	curs_set(0);
 
 	// Enable scrolling, func keys, arrows etc.
-	curs_set(0);
 	keypad(win[LEFT_W], TRUE);
 	keypad(win[RITE_W], TRUE);
 
 	ACTIVE_W = LEFT_W;
-
-	return OK;
-}
-
-int
-get_config(void)
-{
-	char cwd[PATH_MAX];
-
-	if (getcwd(cwd, sizeof(cwd)) == NULL) {
-		perror("getcwd");
-		return ERR;
-	}
-
-	snprintf(CONFIG_PATH, sizeof(CONFIG_PATH), "%s/%s", cwd, ".config");
-	snprintf(EDITOR_PATH, sizeof(CONFIG_PATH), "%s/editor/yate", cwd);
-
-	return OK;
-}
-
-int
-load_config(void)
-{
-	FILE *fp = fopen(CONFIG_PATH, "r");
-	if (fp == NULL)	return ERR;
-
-	char line[LINE_MAX];
-	char theme = '0';
-
-	while ((fgets(line, LINE_MAX, fp)) != NULL) {
-		if ((strncmp(line, "theme", 5) == 0) && (strlen(line) >= 7))
-			theme = line[6];
-		change_theme(theme);
-	}
-
-	fclose(fp);
-
-	return OK;
-}
-
-int
-save_config(void)
-{
-	FILE *fp = fopen(CONFIG_PATH, "w");
-	if (fp == NULL)	return ERR;
-
-	fprintf(fp, "theme %c\n", current_theme);
-	fclose(fp);
-
-	return OK;
 }
