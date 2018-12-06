@@ -1,2 +1,1 @@
-# YATE
-Yet Another Text Editor based on ncurses library.
+[YATE](https://github.com/5aboteur/YATE)

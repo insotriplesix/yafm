@@ -8,31 +8,6 @@
 #include "gui.h"
 #include "init.h"
 
-char filename[FILENAME_MAX];
-
-/*
- * Function: finalize
- * ------------------
- * Description:
- *  Restores default terminal attributes, frees allocated memory
- *  and saves current editor configuration into the config file.
- */
-
-void
-finalize(void)
-{
-	disable_raw_mode();
-
-	if (content.nrows != 0)
-		free_content();
-
-	for (int i = 0; i < NWINDOWS; ++i)
-		delwin(win[i]);
-
-	endwin();
-	save_config();
-}
-
 /*
  * Function: initialize
  * --------------------
@@ -81,6 +56,29 @@ initialize(int argc, char *argv[])
 	enable_raw_mode();
 
 	wmove(win[EDIT_W], DEFPOS_Y, DEFPOS_X);
+}
+
+/*
+ * Function: finalize
+ * ------------------
+ * Description:
+ *  Restores default terminal attributes, frees allocated memory
+ *  and saves current editor configuration into the config file.
+ */
+
+void
+finalize(void)
+{
+	disable_raw_mode();
+
+	if (content.nrows != 0)
+		free_content();
+
+	for (int i = 0; i < NWINDOWS; ++i)
+		delwin(win[i]);
+
+	endwin();
+	save_config();
 }
 
 /*
@@ -157,10 +155,10 @@ init_windows(void)
 	assert(win[MENU_W] != NULL);
 
 	win[EDIT_W] = newwin(LINES - 8, COLS, 3, 0);
-	assert(win[MENU_W] != NULL);
+	assert(win[EDIT_W] != NULL);
 
 	win[INFO_W] = newwin(5, COLS, LINES - 5, 0);
-	assert(win[MENU_W] != NULL);
+	assert(win[INFO_W] != NULL);
 
 	// Enable scrolling, func keys, arrows etc
 	keypad(win[EDIT_W], TRUE);
