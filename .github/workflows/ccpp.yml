@@ -9,7 +9,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: install 
-      run: ./install.sh
+    - name: install dependencies
+      run: apt install libncurses5-dev libncursesw5-dev
     - name: make
       run: make
